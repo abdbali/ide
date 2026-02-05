@@ -7,7 +7,26 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="app">
+    <div class="login-overlay" id="login-overlay">
+      <div class="login-card glass">
+        <h2>Arduino Blok IDE</h2>
+        <p>Devam etmek için giriş yapın</p>
+        <button class="google-login" id="google-login">Google ile giriş yap</button>
+        <div class="login-divider">veya</div>
+        <label>
+          Kullanıcı adı
+          <input type="text" id="login-user" placeholder="admin" />
+        </label>
+        <label>
+          Şifre
+          <input type="password" id="login-pass" placeholder="••••••" />
+        </label>
+        <button class="login-button" id="login-button">Giriş yap</button>
+        <small>Test kullanıcı: admin / 243cS4.</small>
+      </div>
+    </div>
+
+    <div class="app" id="app">
       <aside class="sidebar glass">
         <div class="sidebar-header">
           <h1>Arduino Blok IDE</h1>
@@ -19,9 +38,16 @@
 
         <div class="examples">
           <h2>Örnek Projeler</h2>
-          <button class="example" data-example="sensor">Sensör Okuma</button>
-          <button class="example" data-example="motor">Motor & Servo</button>
+          <button class="example" data-example="blink">LED Yak (Blink)</button>
+          <button class="example" data-example="fade">PWM Fade</button>
+          <button class="example" data-example="distance">Mesafe Alarmı</button>
+          <button class="example" data-example="climate">Sıcaklık/Nem</button>
+          <button class="example" data-example="servo">Servo Sweep</button>
+          <button class="example" data-example="rfid">RFID Kapı</button>
+          <button class="example" data-example="oled">OLED Mesaj</button>
+          <button class="example" data-example="motor">Motor & Yön</button>
           <button class="example" data-example="iot">IoT Gönderim</button>
+          <button class="example" data-example="loop">Kontrol Akışı</button>
         </div>
 
         <div class="block-groups">
@@ -97,6 +123,15 @@
         <div class="panel-footer">
           <h3>Akış Özeti</h3>
           <ul id="flow-summary"></ul>
+        </div>
+        <div class="serial-monitor">
+          <div class="serial-header">
+            <h3>Seri Monitör</h3>
+            <button id="clear-serial">Temizle</button>
+          </div>
+          <div class="serial-body" id="serial-body">
+            <p>&gt; Bağlantı bekleniyor...</p>
+          </div>
         </div>
       </aside>
     </div>

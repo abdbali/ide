@@ -9,6 +9,14 @@ const copyButton = document.getElementById("copy-code");
 const searchInput = document.getElementById("block-search");
 const connectionsSvg = document.getElementById("connections");
 const exampleButtons = document.querySelectorAll(".example");
+const loginOverlay = document.getElementById("login-overlay");
+const loginButton = document.getElementById("login-button");
+const googleLogin = document.getElementById("google-login");
+const loginUser = document.getElementById("login-user");
+const loginPass = document.getElementById("login-pass");
+const appRoot = document.getElementById("app");
+const clearSerial = document.getElementById("clear-serial");
+const serialBody = document.getElementById("serial-body");
 
 const blockDefinitions = {
   print: {
@@ -159,9 +167,44 @@ const blockDefinitions = {
 };
 
 const examples = {
-  sensor: {
+  blink: {
     blocks: [
-      { type: "dht", values: { data: 4, temp: "temperature", humidity: "humidity" } },
+      { type: "pin-write", values: { pin: 13, value: "HIGH" } },
+      { type: "delay", values: { ms: 500 } },
+      { type: "pin-write", values: { pin: 13, value: "LOW" } },
+      { type: "delay", values: { ms: 500 } },
+    ],
+    connections: [
+      { from: 0, to: 1 },
+      { from: 1, to: 2 },
+      { from: 2, to: 3 },
+    ],
+  },
+  fade: {
+    blocks: [
+      { type: "pwm", values: { pin: 9, frequency: 500, duty: 128 } },
+      { type: "delay", values: { ms: 60 } },
+      { type: "repeat", values: { times: 10 } },
+    ],
+    connections: [
+      { from: 0, to: 1 },
+      { from: 1, to: 2 },
+    ],
+  },
+  distance: {
+    blocks: [
+      { type: "ultrasonic", values: { trigger: 2, echo: 3, store: "mesafe" } },
+      { type: "if", values: { left: "mesafe", operator: "<=", right: 20 } },
+      { type: "buzzer", values: { pin: 8, tone: 800 } },
+    ],
+    connections: [
+      { from: 0, to: 1 },
+      { from: 1, to: 2 },
+    ],
+  },
+  climate: {
+    blocks: [
+      { type: "dht", values: { data: 4, temp: "sicaklik", humidity: "nem" } },
       { type: "print", values: { text: "Sicaklik ve nem" } },
       { type: "delay", values: { ms: 2000 } },
     ],
@@ -170,11 +213,44 @@ const examples = {
       { from: 1, to: 2 },
     ],
   },
+  servo: {
+    blocks: [
+      { type: "servo", values: { port: "Port 1", pin: 4, angle: 0 } },
+      { type: "delay", values: { ms: 300 } },
+      { type: "servo", values: { port: "Port 1", pin: 4, angle: 180 } },
+    ],
+    connections: [
+      { from: 0, to: 1 },
+      { from: 1, to: 2 },
+    ],
+  },
+  rfid: {
+    blocks: [
+      { type: "rfid", values: { sck: 4, mosi: 5, miso: 6, rst: 7, cs: 15, uid: "uid" } },
+      { type: "if", values: { left: "uid", operator: "==", right: 1234 } },
+      { type: "pin-write", values: { pin: 12, value: "HIGH" } },
+    ],
+    connections: [
+      { from: 0, to: 1 },
+      { from: 1, to: 2 },
+    ],
+  },
+  oled: {
+    blocks: [
+      { type: "oled", values: { port: "Port 1", sck: 47, sda: 48, rotate: 0, text: "Merhaba" } },
+      { type: "delay", values: { ms: 1000 } },
+      { type: "print", values: { text: "OLED guncellendi" } },
+    ],
+    connections: [
+      { from: 0, to: 1 },
+      { from: 1, to: 2 },
+    ],
+  },
   motor: {
     blocks: [
-      { type: "servo", values: { port: "Port 1", pin: 4, angle: 90 } },
       { type: "motor", values: { in1: 12, in2: 14, in3: 27, in4: 26, direction: "Forward" } },
       { type: "delay", values: { ms: 1500 } },
+      { type: "motor", values: { in1: 12, in2: 14, in3: 27, in4: 26, direction: "Backward" } },
     ],
     connections: [
       { from: 0, to: 1 },
@@ -192,6 +268,17 @@ const examples = {
       { from: 1, to: 2 },
     ],
   },
+  loop: {
+    blocks: [
+      { type: "repeat", values: { times: 5 } },
+      { type: "for", values: { var: "i", range: "range(10)" } },
+      { type: "while", values: { condition: "true" } },
+    ],
+    connections: [
+      { from: 0, to: 1 },
+      { from: 1, to: 2 },
+    ],
+  },
 };
 
 let flow = [];
@@ -199,6 +286,7 @@ let connections = [];
 let pendingConnector = null;
 let nextPosition = { x: 40, y: 60 };
 let activeDrag = null;
+let selectedBlockId = null;
 
 function updateUI() {
   blockCount.textContent = flow.length;
@@ -337,10 +425,7 @@ function buildBlockElement(block, options = { draggable: true, showConnectors: t
   });
 
   title.querySelector("button").addEventListener("click", () => {
-    flow = flow.filter((item) => item.id !== block.id);
-    connections = connections.filter((conn) => conn.from !== block.id && conn.to !== block.id);
-    element.remove();
-    updateUI();
+    removeBlock(block.id);
   });
 
   if (options.showConnectors) {
@@ -364,6 +449,8 @@ function buildBlockElement(block, options = { draggable: true, showConnectors: t
   if (options.draggable) {
     element.addEventListener("pointerdown", (event) => startDragBlock(event, block, element));
   }
+
+  element.addEventListener("click", () => setSelectedBlock(block.id));
 
   element.appendChild(title);
   element.appendChild(body);
@@ -397,6 +484,7 @@ function createFlowBlock(type, position = null, overrideValues = null) {
   const element = buildBlockElement(block);
   canvas.appendChild(element);
   advanceNextPosition();
+  setSelectedBlock(block.id);
   updateUI();
 }
 
@@ -462,7 +550,7 @@ function drawConnections() {
     const y2 = toRect.top + toRect.height / 2 - canvasRect.top;
 
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    const curve = `M ${x1} ${y1} C ${x1 + 60} ${y1}, ${x2 - 60} ${y2}, ${x2} ${y2}`;
+    const curve = `M ${x1} ${y1} C ${x1 + 90} ${y1}, ${x2 - 90} ${y2}, ${x2} ${y2}`;
     path.setAttribute("d", curve);
     path.setAttribute("class", "connection-line");
     connectionsSvg.appendChild(path);
@@ -481,6 +569,7 @@ function startDragBlock(event, block, element) {
     offsetY: event.clientY - canvasRect.top - block.position.y,
   };
   element.setPointerCapture(event.pointerId);
+  setSelectedBlock(block.id);
 }
 
 function handleBlockMove(event) {
@@ -574,6 +663,55 @@ function layoutBlocks() {
   drawConnections();
 }
 
+function setSelectedBlock(blockId) {
+  selectedBlockId = blockId;
+  document.querySelectorAll(".flow-block").forEach((block) => {
+    block.classList.toggle("selected", block.dataset.id === String(blockId));
+  });
+}
+
+function removeBlock(blockId) {
+  flow = flow.filter((item) => item.id !== blockId);
+  connections = connections.filter((conn) => conn.from !== blockId && conn.to !== blockId);
+  const element = canvas.querySelector(`[data-id="${blockId}"]`);
+  if (element) {
+    element.remove();
+  }
+  if (selectedBlockId === blockId) {
+    selectedBlockId = null;
+  }
+  updateUI();
+}
+
+function handleCanvasClick(event) {
+  if (!event.target.closest(".flow-block")) {
+    selectedBlockId = null;
+    document.querySelectorAll(".flow-block").forEach((block) => block.classList.remove("selected"));
+  }
+}
+
+function handleKeyDown(event) {
+  if (!selectedBlockId) return;
+  if (event.key === "Backspace" || event.key === "Delete") {
+    event.preventDefault();
+    removeBlock(selectedBlockId);
+  }
+}
+
+function handleLogin() {
+  const username = loginUser.value.trim();
+  const password = loginPass.value.trim();
+  if (username === "admin" && password === "243cS4") {
+    loginOverlay.classList.add("hidden");
+    appRoot.classList.add("ready");
+  }
+}
+
+function handleGoogleLogin() {
+  loginOverlay.classList.add("hidden");
+  appRoot.classList.add("ready");
+}
+
 document.querySelectorAll(".block").forEach((block) => {
   block.addEventListener("dragstart", (event) => {
     event.dataTransfer.setData("text/plain", block.dataset.type);
@@ -592,7 +730,9 @@ canvas.addEventListener("dragleave", () => {
 canvas.addEventListener("drop", handleDrop);
 canvas.addEventListener("pointermove", handleBlockMove);
 canvas.addEventListener("pointerup", stopDragBlock);
+canvas.addEventListener("click", handleCanvasClick);
 window.addEventListener("resize", drawConnections);
+document.addEventListener("keydown", handleKeyDown);
 
 clearCanvas.addEventListener("click", () => {
   flow = [];
@@ -629,6 +769,10 @@ copyButton.addEventListener("click", async () => {
   }
 });
 
+clearSerial.addEventListener("click", () => {
+  serialBody.innerHTML = "<p>&gt; Seri monitör temizlendi.</p>";
+});
+
 searchInput.addEventListener("input", (event) => {
   const query = event.target.value.toLowerCase();
   document.querySelectorAll(".block").forEach((block) => {
@@ -642,6 +786,9 @@ exampleButtons.forEach((button) => {
     loadExample(button.dataset.example);
   });
 });
+
+loginButton.addEventListener("click", handleLogin);
+googleLogin.addEventListener("click", handleGoogleLogin);
 
 renderPreviews();
 updateUI();
