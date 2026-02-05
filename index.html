@@ -8,7 +8,7 @@
   </head>
   <body>
     <div class="app">
-      <aside class="sidebar">
+      <aside class="sidebar glass">
         <div class="sidebar-header">
           <h1>Arduino Blok IDE</h1>
           <p>Blokları sürükleyin, akışı bağlayın</p>
@@ -16,43 +16,57 @@
         <div class="search">
           <input type="text" placeholder="Blok ara..." id="block-search" />
         </div>
+
+        <div class="examples">
+          <h2>Örnek Projeler</h2>
+          <button class="example" data-example="sensor">Sensör Okuma</button>
+          <button class="example" data-example="motor">Motor & Servo</button>
+          <button class="example" data-example="iot">IoT Gönderim</button>
+        </div>
+
         <div class="block-groups">
-          <div class="block-group">
-            <h2>Temel</h2>
+          <details class="block-group" open>
+            <summary>Temel</summary>
             <div class="block" draggable="true" data-type="print">Print</div>
             <div class="block" draggable="true" data-type="delay">Delay</div>
             <div class="block" draggable="true" data-type="repeat">Repeat</div>
-          </div>
-          <div class="block-group">
-            <h2>Döngü & Koşul</h2>
+            <div class="block-preview" data-type="print"></div>
+            <div class="block-preview" data-type="delay"></div>
+          </details>
+          <details class="block-group" open>
+            <summary>Döngü & Koşul</summary>
             <div class="block" draggable="true" data-type="if">If / Else</div>
             <div class="block" draggable="true" data-type="for">For Loop</div>
             <div class="block" draggable="true" data-type="while">While Loop</div>
-          </div>
-          <div class="block-group">
-            <h2>GPIO</h2>
+            <div class="block-preview" data-type="if"></div>
+          </details>
+          <details class="block-group" open>
+            <summary>GPIO</summary>
             <div class="block" draggable="true" data-type="pin-write">Pin Write</div>
             <div class="block" draggable="true" data-type="pin-read">Pin Read</div>
             <div class="block" draggable="true" data-type="pwm">PWM</div>
             <div class="block" draggable="true" data-type="buzzer">Buzzer Tone</div>
-          </div>
-          <div class="block-group">
-            <h2>Sensörler</h2>
+            <div class="block-preview" data-type="pin-write"></div>
+          </details>
+          <details class="block-group">
+            <summary>Sensörler</summary>
             <div class="block" draggable="true" data-type="ultrasonic">Ultrasonic Sensor</div>
             <div class="block" draggable="true" data-type="dht">DHT11 Sensor</div>
             <div class="block" draggable="true" data-type="rfid">RFID Sensor</div>
-          </div>
-          <div class="block-group">
-            <h2>Donanım</h2>
+            <div class="block-preview" data-type="dht"></div>
+          </details>
+          <details class="block-group">
+            <summary>Donanım</summary>
             <div class="block" draggable="true" data-type="servo">Servo Motor</div>
             <div class="block" draggable="true" data-type="oled">1.3in OLED</div>
             <div class="block" draggable="true" data-type="wifi">WiFi Connect</div>
             <div class="block" draggable="true" data-type="motor">L298N Motor Driver</div>
-          </div>
+            <div class="block-preview" data-type="servo"></div>
+          </details>
         </div>
       </aside>
 
-      <main class="workspace">
+      <main class="workspace glass">
         <header class="workspace-header">
           <div class="actions">
             <button id="clear-canvas">Temizle</button>
@@ -71,7 +85,7 @@
         </section>
       </main>
 
-      <aside class="panel">
+      <aside class="panel glass">
         <header class="panel-header">
           <h2>Oluşturulan Kod</h2>
           <div class="panel-actions">

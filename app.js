@@ -8,6 +8,7 @@ const downloadButton = document.getElementById("download-ino");
 const copyButton = document.getElementById("copy-code");
 const searchInput = document.getElementById("block-search");
 const connectionsSvg = document.getElementById("connections");
+const exampleButtons = document.querySelectorAll(".example");
 
 const blockDefinitions = {
   print: {
@@ -157,9 +158,47 @@ const blockDefinitions = {
   },
 };
 
+const examples = {
+  sensor: {
+    blocks: [
+      { type: "dht", values: { data: 4, temp: "temperature", humidity: "humidity" } },
+      { type: "print", values: { text: "Sicaklik ve nem" } },
+      { type: "delay", values: { ms: 2000 } },
+    ],
+    connections: [
+      { from: 0, to: 1 },
+      { from: 1, to: 2 },
+    ],
+  },
+  motor: {
+    blocks: [
+      { type: "servo", values: { port: "Port 1", pin: 4, angle: 90 } },
+      { type: "motor", values: { in1: 12, in2: 14, in3: 27, in4: 26, direction: "Forward" } },
+      { type: "delay", values: { ms: 1500 } },
+    ],
+    connections: [
+      { from: 0, to: 1 },
+      { from: 1, to: 2 },
+    ],
+  },
+  iot: {
+    blocks: [
+      { type: "wifi", values: { ssid: "MyWiFi", password: "password" } },
+      { type: "rfid", values: { sck: 4, mosi: 5, miso: 6, rst: 7, cs: 15, uid: "uid" } },
+      { type: "oled", values: { port: "Port 1", sck: 47, sda: 48, rotate: 0, text: "Merhaba" } },
+    ],
+    connections: [
+      { from: 0, to: 1 },
+      { from: 1, to: 2 },
+    ],
+  },
+};
+
 let flow = [];
 let connections = [];
 let pendingConnector = null;
+let nextPosition = { x: 40, y: 60 };
+let activeDrag = null;
 
 function updateUI() {
   blockCount.textContent = flow.length;
@@ -238,14 +277,21 @@ function blockToCode(block) {
     case "motor":
       return [`  // L298N ${fields.direction} (IN1:${fields.in1} IN2:${fields.in2} IN3:${fields.in3} IN4:${fields.in4})`];
     default:
-      return ["  // blok"]; 
+      return ["  // blok"];
   }
 }
 
-function buildBlockElement(block) {
+function buildSummary(block) {
+  const values = Object.values(block.values).join(", ");
+  return values.length > 0 ? values : "";
+}
+
+function buildBlockElement(block, options = { draggable: true, showConnectors: true }) {
   const element = document.createElement("article");
   element.className = `flow-block ${block.theme}`;
   element.dataset.id = block.id;
+  element.style.left = `${block.position.x}px`;
+  element.style.top = `${block.position.y}px`;
 
   const title = document.createElement("div");
   title.className = "block-title";
@@ -290,19 +336,6 @@ function buildBlockElement(block) {
     body.appendChild(row);
   });
 
-  const inputConnector = document.createElement("button");
-  inputConnector.className = "connector input";
-  inputConnector.type = "button";
-  inputConnector.dataset.connector = "input";
-
-  const outputConnector = document.createElement("button");
-  outputConnector.className = "connector output";
-  outputConnector.type = "button";
-  outputConnector.dataset.connector = "output";
-
-  inputConnector.addEventListener("click", () => handleConnectorClick(block, "input", inputConnector));
-  outputConnector.addEventListener("click", () => handleConnectorClick(block, "output", outputConnector));
-
   title.querySelector("button").addEventListener("click", () => {
     flow = flow.filter((item) => item.id !== block.id);
     connections = connections.filter((conn) => conn.from !== block.id && conn.to !== block.id);
@@ -310,20 +343,35 @@ function buildBlockElement(block) {
     updateUI();
   });
 
+  if (options.showConnectors) {
+    const inputConnector = document.createElement("button");
+    inputConnector.className = "connector input";
+    inputConnector.type = "button";
+    inputConnector.dataset.connector = "input";
+
+    const outputConnector = document.createElement("button");
+    outputConnector.className = "connector output";
+    outputConnector.type = "button";
+    outputConnector.dataset.connector = "output";
+
+    inputConnector.addEventListener("click", () => handleConnectorClick(block, "input", inputConnector));
+    outputConnector.addEventListener("click", () => handleConnectorClick(block, "output", outputConnector));
+
+    element.appendChild(inputConnector);
+    element.appendChild(outputConnector);
+  }
+
+  if (options.draggable) {
+    element.addEventListener("pointerdown", (event) => startDragBlock(event, block, element));
+  }
+
   element.appendChild(title);
   element.appendChild(body);
-  element.appendChild(inputConnector);
-  element.appendChild(outputConnector);
 
   return element;
 }
 
-function buildSummary(block) {
-  const values = Object.values(block.values).join(", ");
-  return values.length > 0 ? values : "";
-}
-
-function createFlowBlock(type) {
+function createFlowBlock(type, position = null, overrideValues = null) {
   const definition = blockDefinitions[type];
   if (!definition) return;
 
@@ -338,8 +386,9 @@ function createFlowBlock(type) {
     title: definition.title,
     theme: definition.theme,
     fields: definition.fields,
-    values,
+    values: { ...values, ...overrideValues },
     summary: "",
+    position: position || { x: nextPosition.x, y: nextPosition.y },
   };
 
   block.summary = buildSummary(block);
@@ -347,7 +396,16 @@ function createFlowBlock(type) {
 
   const element = buildBlockElement(block);
   canvas.appendChild(element);
+  advanceNextPosition();
   updateUI();
+}
+
+function advanceNextPosition() {
+  nextPosition.x += 240;
+  if (nextPosition.x > canvas.clientWidth - 260) {
+    nextPosition.x = 40;
+    nextPosition.y += 220;
+  }
 }
 
 function handleDrop(event) {
@@ -355,7 +413,12 @@ function handleDrop(event) {
   canvas.classList.remove("drag-over");
   const type = event.dataTransfer.getData("text/plain");
   if (type) {
-    createFlowBlock(type);
+    const canvasRect = canvas.getBoundingClientRect();
+    const position = {
+      x: event.clientX - canvasRect.left - 100,
+      y: event.clientY - canvasRect.top - 40,
+    };
+    createFlowBlock(type, position);
   }
 }
 
@@ -406,6 +469,111 @@ function drawConnections() {
   });
 }
 
+function startDragBlock(event, block, element) {
+  if (event.target.closest("input, select, button")) {
+    return;
+  }
+  const canvasRect = canvas.getBoundingClientRect();
+  activeDrag = {
+    block,
+    element,
+    offsetX: event.clientX - canvasRect.left - block.position.x,
+    offsetY: event.clientY - canvasRect.top - block.position.y,
+  };
+  element.setPointerCapture(event.pointerId);
+}
+
+function handleBlockMove(event) {
+  if (!activeDrag) return;
+  const canvasRect = canvas.getBoundingClientRect();
+  const x = event.clientX - canvasRect.left - activeDrag.offsetX;
+  const y = event.clientY - canvasRect.top - activeDrag.offsetY;
+
+  activeDrag.block.position.x = Math.max(0, x);
+  activeDrag.block.position.y = Math.max(0, y);
+  activeDrag.element.style.left = `${activeDrag.block.position.x}px`;
+  activeDrag.element.style.top = `${activeDrag.block.position.y}px`;
+  drawConnections();
+}
+
+function stopDragBlock(event) {
+  if (!activeDrag) return;
+  activeDrag.element.releasePointerCapture(event.pointerId);
+  activeDrag = null;
+}
+
+function renderPreviews() {
+  document.querySelectorAll(".block-preview").forEach((preview) => {
+    const type = preview.dataset.type;
+    const definition = blockDefinitions[type];
+    if (!definition) return;
+    const values = {};
+    definition.fields.forEach((field) => {
+      values[field.name] = field.value;
+    });
+    const block = {
+      id: `preview-${type}`,
+      type,
+      title: definition.title,
+      theme: definition.theme,
+      fields: definition.fields,
+      values,
+      summary: "",
+      position: { x: 0, y: 0 },
+    };
+    const element = buildBlockElement(block, { draggable: false, showConnectors: false });
+    element.classList.add("preview");
+    element.style.left = "0px";
+    element.style.top = "0px";
+    element.querySelector("button").remove();
+    preview.innerHTML = "";
+    preview.appendChild(element);
+  });
+}
+
+function loadExample(name) {
+  const example = examples[name];
+  if (!example) return;
+  flow = [];
+  connections = [];
+  canvas.querySelectorAll(".flow-block").forEach((el) => el.remove());
+  nextPosition = { x: 40, y: 60 };
+
+  const created = example.blocks.map((blockData) => {
+    const position = { x: nextPosition.x, y: nextPosition.y };
+    createFlowBlock(blockData.type, position, blockData.values);
+    return flow[flow.length - 1];
+  });
+
+  connections = example.connections
+    .map((conn) => ({
+      from: created[conn.from]?.id,
+      to: created[conn.to]?.id,
+    }))
+    .filter((conn) => conn.from && conn.to);
+  updateUI();
+}
+
+function layoutBlocks() {
+  const blocks = Array.from(canvas.querySelectorAll(".flow-block"));
+  let x = 40;
+  let y = 60;
+  blocks.forEach((block, index) => {
+    const id = block.dataset.id;
+    const flowBlock = flow.find((item) => String(item.id) === id);
+    if (!flowBlock) return;
+    flowBlock.position = { x, y };
+    block.style.left = `${x}px`;
+    block.style.top = `${y}px`;
+    x += 240;
+    if ((index + 1) % 3 === 0) {
+      x = 40;
+      y += 220;
+    }
+  });
+  drawConnections();
+}
+
 document.querySelectorAll(".block").forEach((block) => {
   block.addEventListener("dragstart", (event) => {
     event.dataTransfer.setData("text/plain", block.dataset.type);
@@ -422,6 +590,8 @@ canvas.addEventListener("dragleave", () => {
 });
 
 canvas.addEventListener("drop", handleDrop);
+canvas.addEventListener("pointermove", handleBlockMove);
+canvas.addEventListener("pointerup", stopDragBlock);
 window.addEventListener("resize", drawConnections);
 
 clearCanvas.addEventListener("click", () => {
@@ -432,10 +602,7 @@ clearCanvas.addEventListener("click", () => {
 });
 
 autoLayout.addEventListener("click", () => {
-  const blocks = Array.from(canvas.querySelectorAll(".flow-block"));
-  blocks.forEach((block, index) => {
-    block.style.order = index;
-  });
+  layoutBlocks();
 });
 
 downloadButton.addEventListener("click", () => {
@@ -470,4 +637,11 @@ searchInput.addEventListener("input", (event) => {
   });
 });
 
+exampleButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    loadExample(button.dataset.example);
+  });
+});
+
+renderPreviews();
 updateUI();
