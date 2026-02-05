@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arduino Blok IDE</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h1>Arduino Blok IDE</h1>
+          <p>Sürükle & bırak ile akış oluştur</p>
+        </div>
+        <div class="search">
+          <input type="text" placeholder="Blok ara..." id="block-search" />
+        </div>
+        <div class="block-groups">
+          <div class="block-group">
+            <h2>Temel Bloklar</h2>
+            <div class="block" draggable="true" data-type="setup">Setup</div>
+            <div class="block" draggable="true" data-type="loop">Loop</div>
+            <div class="block" draggable="true" data-type="delay">Bekle (Delay)</div>
+            <div class="block" draggable="true" data-type="serial">Seri Yazdır</div>
+          </div>
+          <div class="block-group">
+            <h2>Kontrol</h2>
+            <div class="block" draggable="true" data-type="if">Eğer / Değilse</div>
+            <div class="block" draggable="true" data-type="for">For Döngüsü</div>
+            <div class="block" draggable="true" data-type="while">While Döngüsü</div>
+          </div>
+          <div class="block-group">
+            <h2>G/Ç</h2>
+            <div class="block" draggable="true" data-type="digital-write">Dijital Yaz</div>
+            <div class="block" draggable="true" data-type="digital-read">Dijital Oku</div>
+            <div class="block" draggable="true" data-type="analog-read">Analog Oku</div>
+          </div>
+          <div class="block-group">
+            <h2>Sensörler</h2>
+            <div class="block" draggable="true" data-type="dht">DHT11 Sensör</div>
+            <div class="block" draggable="true" data-type="ultrasonic">Ultrasonik Mesafe</div>
+            <div class="block" draggable="true" data-type="servo">Servo Motor</div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="workspace-header">
+          <div class="actions">
+            <button id="clear-canvas">Temizle</button>
+            <button id="auto-layout">Akışı Düzenle</button>
+          </div>
+          <div class="status">
+            <span class="dot"></span>
+            Bloklar: <span id="block-count">0</span>
+          </div>
+        </header>
+        <section class="canvas" id="canvas" aria-label="Akış alanı">
+          <div class="canvas-hint">
+            Blokları buraya sürükleyin. Akış mantığı için blokları yukarıdan aşağıya dizin.
+          </div>
+        </section>
+      </main>
+
+      <aside class="panel">
+        <header class="panel-header">
+          <h2>Oluşturulan Kod</h2>
+          <div class="panel-actions">
+            <button id="copy-code">Kopyala</button>
+            <button id="download-ino">.ino indir</button>
+          </div>
+        </header>
+        <pre class="code" id="code-output"></pre>
+        <div class="panel-footer">
+          <h3>Akış Özeti</h3>
+          <ul id="flow-summary"></ul>
+        </div>
+      </aside>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
