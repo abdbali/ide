@@ -11,33 +11,17 @@
       <div class="login-card glass">
         <h2>Arduino Blok IDE</h2>
         <p>Devam etmek için giriş yapın</p>
-        <button class="google-login" id="google-login">Google ile giriş yap</button>
-        <div class="login-divider">veya</div>
-        <label>
-          Kullanıcı adı
-          <input type="text" id="login-user" placeholder="admin" />
-        </label>
-        <label>
-          Şifre
-          <input type="password" id="login-pass" placeholder="••••••" />
-        </label>
         <button class="login-button" id="login-button">Giriş yap</button>
-        <small>Test kullanıcı: admin / 243cS4.</small>
       </div>
     </div>
 
     <div class="app" id="app">
-      <aside class="sidebar glass">
-        <div class="sidebar-header">
-          <h1>Arduino Blok IDE</h1>
-          <p>Blokları sürükleyin, akışı bağlayın</p>
-        </div>
-        <div class="search">
-          <input type="text" placeholder="Blok ara..." id="block-search" />
-        </div>
-
-        <div class="examples">
+      <aside class="examples-panel glass" id="examples-panel">
+        <div class="panel-header-row">
           <h2>Örnek Projeler</h2>
+          <button id="toggle-examples" aria-label="Örnekler panelini aç/kapat">⟷</button>
+        </div>
+        <div class="examples">
           <button class="example" data-example="blink">LED Yak (Blink)</button>
           <button class="example" data-example="fade">PWM Fade</button>
           <button class="example" data-example="distance">Mesafe Alarmı</button>
@@ -48,6 +32,18 @@
           <button class="example" data-example="motor">Motor & Yön</button>
           <button class="example" data-example="iot">IoT Gönderim</button>
           <button class="example" data-example="loop">Kontrol Akışı</button>
+        </div>
+      </aside>
+
+      <div class="resizer" data-resize="examples"></div>
+
+      <aside class="sidebar glass">
+        <div class="sidebar-header">
+          <h1>Arduino Blok IDE</h1>
+          <p>Blokları sürükleyin, akışı bağlayın</p>
+        </div>
+        <div class="search">
+          <input type="text" placeholder="Blok ara..." id="block-search" />
         </div>
 
         <div class="block-groups">
@@ -92,6 +88,8 @@
         </div>
       </aside>
 
+      <div class="resizer" data-resize="sidebar"></div>
+
       <main class="workspace glass">
         <header class="workspace-header">
           <div class="actions">
@@ -110,6 +108,8 @@
           <svg class="connections" id="connections" aria-hidden="true"></svg>
         </section>
       </main>
+
+      <div class="resizer" data-resize="panel"></div>
 
       <aside class="panel glass">
         <header class="panel-header">

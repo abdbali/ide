@@ -11,12 +11,12 @@ const connectionsSvg = document.getElementById("connections");
 const exampleButtons = document.querySelectorAll(".example");
 const loginOverlay = document.getElementById("login-overlay");
 const loginButton = document.getElementById("login-button");
-const googleLogin = document.getElementById("google-login");
-const loginUser = document.getElementById("login-user");
-const loginPass = document.getElementById("login-pass");
 const appRoot = document.getElementById("app");
 const clearSerial = document.getElementById("clear-serial");
 const serialBody = document.getElementById("serial-body");
+const examplesPanel = document.getElementById("examples-panel");
+const toggleExamples = document.getElementById("toggle-examples");
+const resizers = document.querySelectorAll(".resizer");
 
 const blockDefinitions = {
   print: {
@@ -287,6 +287,8 @@ let pendingConnector = null;
 let nextPosition = { x: 40, y: 60 };
 let activeDrag = null;
 let selectedBlockId = null;
+let storedExamplesWidth = null;
+let activeResizer = null;
 
 function updateUI() {
   blockCount.textContent = flow.length;
@@ -699,17 +701,61 @@ function handleKeyDown(event) {
 }
 
 function handleLogin() {
-  const username = loginUser.value.trim();
-  const password = loginPass.value.trim();
-  if (username === "admin" && password === "243cS4") {
-    loginOverlay.classList.add("hidden");
-    appRoot.classList.add("ready");
+  loginOverlay.classList.add("hidden");
+  appRoot.classList.add("ready");
+}
+
+function toggleExamplesPanel() {
+  if (!storedExamplesWidth) {
+    storedExamplesWidth = getComputedStyle(document.documentElement).getPropertyValue("--examples-width").trim();
+  }
+  const collapsed = examplesPanel.classList.toggle("collapsed");
+  if (collapsed) {
+    document.documentElement.style.setProperty("--examples-width", "56px");
+  } else {
+    document.documentElement.style.setProperty("--examples-width", storedExamplesWidth || "240px");
   }
 }
 
-function handleGoogleLogin() {
-  loginOverlay.classList.add("hidden");
-  appRoot.classList.add("ready");
+function getCssNumber(variable) {
+  return Number(getComputedStyle(document.documentElement).getPropertyValue(variable).replace("px", ""));
+}
+
+function handleResizerPointerDown(event) {
+  const type = event.currentTarget.dataset.resize;
+  const startX = event.clientX;
+  activeResizer = {
+    type,
+    startX,
+    startExamples: getCssNumber("--examples-width"),
+    startSidebar: getCssNumber("--sidebar-width"),
+    startPanel: getCssNumber("--panel-width"),
+  };
+  event.currentTarget.setPointerCapture(event.pointerId);
+}
+
+function handleResizerPointerMove(event) {
+  if (!activeResizer) return;
+  const delta = event.clientX - activeResizer.startX;
+  if (activeResizer.type === "examples") {
+    const width = Math.min(320, Math.max(180, activeResizer.startExamples + delta));
+    document.documentElement.style.setProperty("--examples-width", `${width}px`);
+    storedExamplesWidth = `${width}px`;
+  }
+  if (activeResizer.type === "sidebar") {
+    const width = Math.min(380, Math.max(220, activeResizer.startSidebar + delta));
+    document.documentElement.style.setProperty("--sidebar-width", `${width}px`);
+  }
+  if (activeResizer.type === "panel") {
+    const width = Math.min(460, Math.max(260, activeResizer.startPanel - delta));
+    document.documentElement.style.setProperty("--panel-width", `${width}px`);
+  }
+}
+
+function handleResizerPointerUp(event) {
+  if (!activeResizer) return;
+  event.currentTarget.releasePointerCapture(event.pointerId);
+  activeResizer = null;
 }
 
 document.querySelectorAll(".block").forEach((block) => {
@@ -788,7 +834,13 @@ exampleButtons.forEach((button) => {
 });
 
 loginButton.addEventListener("click", handleLogin);
-googleLogin.addEventListener("click", handleGoogleLogin);
+toggleExamples.addEventListener("click", toggleExamplesPanel);
+
+resizers.forEach((resizer) => {
+  resizer.addEventListener("pointerdown", handleResizerPointerDown);
+  resizer.addEventListener("pointermove", handleResizerPointerMove);
+  resizer.addEventListener("pointerup", handleResizerPointerUp);
+});
 
 renderPreviews();
 updateUI();
