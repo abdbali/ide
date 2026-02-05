@@ -11,36 +11,43 @@
       <aside class="sidebar">
         <div class="sidebar-header">
           <h1>Arduino Blok IDE</h1>
-          <p>Sürükle & bırak ile akış oluştur</p>
+          <p>Blokları sürükleyin, akışı bağlayın</p>
         </div>
         <div class="search">
           <input type="text" placeholder="Blok ara..." id="block-search" />
         </div>
         <div class="block-groups">
           <div class="block-group">
-            <h2>Temel Bloklar</h2>
-            <div class="block" draggable="true" data-type="setup">Setup</div>
-            <div class="block" draggable="true" data-type="loop">Loop</div>
-            <div class="block" draggable="true" data-type="delay">Bekle (Delay)</div>
-            <div class="block" draggable="true" data-type="serial">Seri Yazdır</div>
+            <h2>Temel</h2>
+            <div class="block" draggable="true" data-type="print">Print</div>
+            <div class="block" draggable="true" data-type="delay">Delay</div>
+            <div class="block" draggable="true" data-type="repeat">Repeat</div>
           </div>
           <div class="block-group">
-            <h2>Kontrol</h2>
-            <div class="block" draggable="true" data-type="if">Eğer / Değilse</div>
-            <div class="block" draggable="true" data-type="for">For Döngüsü</div>
-            <div class="block" draggable="true" data-type="while">While Döngüsü</div>
+            <h2>Döngü & Koşul</h2>
+            <div class="block" draggable="true" data-type="if">If / Else</div>
+            <div class="block" draggable="true" data-type="for">For Loop</div>
+            <div class="block" draggable="true" data-type="while">While Loop</div>
           </div>
           <div class="block-group">
-            <h2>G/Ç</h2>
-            <div class="block" draggable="true" data-type="digital-write">Dijital Yaz</div>
-            <div class="block" draggable="true" data-type="digital-read">Dijital Oku</div>
-            <div class="block" draggable="true" data-type="analog-read">Analog Oku</div>
+            <h2>GPIO</h2>
+            <div class="block" draggable="true" data-type="pin-write">Pin Write</div>
+            <div class="block" draggable="true" data-type="pin-read">Pin Read</div>
+            <div class="block" draggable="true" data-type="pwm">PWM</div>
+            <div class="block" draggable="true" data-type="buzzer">Buzzer Tone</div>
           </div>
           <div class="block-group">
             <h2>Sensörler</h2>
-            <div class="block" draggable="true" data-type="dht">DHT11 Sensör</div>
-            <div class="block" draggable="true" data-type="ultrasonic">Ultrasonik Mesafe</div>
+            <div class="block" draggable="true" data-type="ultrasonic">Ultrasonic Sensor</div>
+            <div class="block" draggable="true" data-type="dht">DHT11 Sensor</div>
+            <div class="block" draggable="true" data-type="rfid">RFID Sensor</div>
+          </div>
+          <div class="block-group">
+            <h2>Donanım</h2>
             <div class="block" draggable="true" data-type="servo">Servo Motor</div>
+            <div class="block" draggable="true" data-type="oled">1.3in OLED</div>
+            <div class="block" draggable="true" data-type="wifi">WiFi Connect</div>
+            <div class="block" draggable="true" data-type="motor">L298N Motor Driver</div>
           </div>
         </div>
       </aside>
@@ -58,8 +65,9 @@
         </header>
         <section class="canvas" id="canvas" aria-label="Akış alanı">
           <div class="canvas-hint">
-            Blokları buraya sürükleyin. Akış mantığı için blokları yukarıdan aşağıya dizin.
+            Blokları buraya sürükleyin. Bağlantı noktalarına tıklayıp çizgiler oluşturun.
           </div>
+          <svg class="connections" id="connections" aria-hidden="true"></svg>
         </section>
       </main>
 
