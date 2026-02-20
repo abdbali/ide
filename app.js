@@ -29,10 +29,6 @@ const authMessage = document.getElementById("auth-message");
 const appRoot = document.getElementById("app");
 const logoutButton = document.getElementById("logout-button");
 const sessionUser = document.getElementById("session-user");
-const usernameOverlay = document.getElementById("username-overlay");
-const usernameInput = document.getElementById("username-input");
-const saveUsernameButton = document.getElementById("save-username");
-const usernameMessage = document.getElementById("username-message");
 const clearSerial = document.getElementById("clear-serial");
 const serialBody = document.getElementById("serial-body");
 const examplesPanel = document.getElementById("examples-panel");
@@ -790,44 +786,20 @@ function handleGithubLogin() {
   signInWithPopup(firebaseAuth, provider)
     .then((credential) => {
       const user = credential.user;
-      console.log("OAuth user", { uid: user.uid, displayName: user.displayName, email: user.email });
+      const githubUsername = credential.additionalUserInfo?.username;
+      if (githubUsername) {
+        localStorage.setItem(`arduino_github_username:${user.uid}`, githubUsername);
+      }
+      console.log("OAuth user", { uid: user.uid, displayName: user.displayName, email: user.email, githubUsername });
     })
     .catch((error) => showAuthMessage(formatAuthError(error), true));
 }
 
 
-function getUsernameKey(user) {
-  return `arduino_username:${user.uid}`;
-}
 
 function resolveDisplayName(user) {
-  const saved = localStorage.getItem(getUsernameKey(user));
-  return saved || user.displayName || user.email || "Kullanıcı";
-}
-
-function maybeAskUsername(user) {
-  const key = getUsernameKey(user);
-  const existing = localStorage.getItem(key);
-  if (existing) {
-    usernameOverlay.classList.add("hidden");
-    return;
-  }
-  usernameOverlay.classList.remove("hidden");
-  usernameInput.value = "";
-  usernameMessage.textContent = "";
-}
-
-function saveUsernameForCurrentUser() {
-  const user = firebaseAuth?.currentUser;
-  if (!user) return;
-  const value = usernameInput.value.trim();
-  if (value.length < 3) {
-    usernameMessage.textContent = "Kullanıcı adı en az 3 karakter olmalı.";
-    return;
-  }
-  localStorage.setItem(getUsernameKey(user), value);
-  usernameOverlay.classList.add("hidden");
-  sessionUser.textContent = `Oturum: ${value} | ${user.email || "-"} | uid: ${user.uid}`;
+  const githubUsername = localStorage.getItem(`arduino_github_username:${user.uid}`);
+  return githubUsername || user.displayName || user.email || "Kullanıcı";
 }
 
 function createGithubRepoWithCode() {
@@ -886,10 +858,8 @@ async function initializeAuth() {
       sessionUser.textContent = `Oturum: ${displayName} | ${user.email || "-"} | uid: ${user.uid}`;
       loginOverlay.classList.add("hidden");
       appRoot.classList.add("ready");
-      maybeAskUsername(user);
     } else {
       sessionUser.textContent = "Oturum: -";
-      usernameOverlay.classList.add("hidden");
       loginOverlay.classList.remove("hidden");
       appRoot.classList.remove("ready");
     }
@@ -1028,7 +998,6 @@ googleButton.addEventListener("click", handleGoogleLogin);
 githubButton.addEventListener("click", handleGithubLogin);
 toggleExamples.addEventListener("click", toggleExamplesPanel);
 logoutButton.addEventListener("click", () => firebaseAuth && signOut(firebaseAuth));
-saveUsernameButton.addEventListener("click", saveUsernameForCurrentUser);
 createRepoButton.addEventListener("click", createGithubRepoWithCode);
 
 resizers.forEach((resizer) => {
