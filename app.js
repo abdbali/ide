@@ -797,9 +797,27 @@ function handleGithubLogin() {
 
 
 
+function getUsernamePromptSeenKey(user) {
+  return `arduino_username_prompt_seen:${user.uid}`;
+}
+
 function resolveDisplayName(user) {
   const githubUsername = localStorage.getItem(`arduino_github_username:${user.uid}`);
   return githubUsername || user.displayName || user.email || "Kullanıcı";
+}
+
+
+function handleUsernameOverlayKeydown(event) {
+  if (event.key !== "Escape" || usernameOverlay.classList.contains("hidden")) return;
+  closeUsernamePromptForCurrentUser();
+}
+
+function closeUsernamePromptForCurrentUser() {
+  const user = firebaseAuth?.currentUser;
+  if (user) {
+    localStorage.setItem(getUsernamePromptSeenKey(user), "1");
+  }
+  usernameOverlay.classList.add("hidden");
 }
 
 function createGithubRepoWithCode() {
