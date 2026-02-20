@@ -17,6 +17,16 @@
       </div>
     </div>
 
+    <div class="username-overlay hidden" id="username-overlay">
+      <div class="username-card glass">
+        <h3>Kullanıcı adını belirle</h3>
+        <p>Profil adın sol üstte görünecek.</p>
+        <input id="username-input" type="text" maxlength="24" placeholder="kullanici_adi" />
+        <button id="save-username" type="button">Kaydet</button>
+        <small id="username-message"></small>
+      </div>
+    </div>
+
     <div class="app" id="app">
       <div class="session-bar glass" id="session-bar">
         <span id="session-user">Oturum: -</span>
@@ -123,6 +133,7 @@
           <div class="panel-actions">
             <button id="copy-code">Kopyala</button>
             <button id="download-ino">.ino indir</button>
+            <button id="create-repo">GitHub Repo Aç</button>
           </div>
         </header>
         <pre class="code" id="code-output"></pre>

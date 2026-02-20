@@ -18,6 +18,7 @@ const clearCanvas = document.getElementById("clear-canvas");
 const autoLayout = document.getElementById("auto-layout");
 const downloadButton = document.getElementById("download-ino");
 const copyButton = document.getElementById("copy-code");
+const createRepoButton = document.getElementById("create-repo");
 const searchInput = document.getElementById("block-search");
 const connectionsSvg = document.getElementById("connections");
 const exampleButtons = document.querySelectorAll(".example");
@@ -28,6 +29,10 @@ const authMessage = document.getElementById("auth-message");
 const appRoot = document.getElementById("app");
 const logoutButton = document.getElementById("logout-button");
 const sessionUser = document.getElementById("session-user");
+const usernameOverlay = document.getElementById("username-overlay");
+const usernameInput = document.getElementById("username-input");
+const saveUsernameButton = document.getElementById("save-username");
+const usernameMessage = document.getElementById("username-message");
 const clearSerial = document.getElementById("clear-serial");
 const serialBody = document.getElementById("serial-body");
 const examplesPanel = document.getElementById("examples-panel");
@@ -790,6 +795,59 @@ function handleGithubLogin() {
     .catch((error) => showAuthMessage(formatAuthError(error), true));
 }
 
+
+function getUsernameKey(user) {
+  return `arduino_username:${user.uid}`;
+}
+
+function resolveDisplayName(user) {
+  const saved = localStorage.getItem(getUsernameKey(user));
+  return saved || user.displayName || user.email || "Kullanıcı";
+}
+
+function maybeAskUsername(user) {
+  const key = getUsernameKey(user);
+  const existing = localStorage.getItem(key);
+  if (existing) {
+    usernameOverlay.classList.add("hidden");
+    return;
+  }
+  usernameOverlay.classList.remove("hidden");
+  usernameInput.value = "";
+  usernameMessage.textContent = "";
+}
+
+function saveUsernameForCurrentUser() {
+  const user = firebaseAuth?.currentUser;
+  if (!user) return;
+  const value = usernameInput.value.trim();
+  if (value.length < 3) {
+    usernameMessage.textContent = "Kullanıcı adı en az 3 karakter olmalı.";
+    return;
+  }
+  localStorage.setItem(getUsernameKey(user), value);
+  usernameOverlay.classList.add("hidden");
+  sessionUser.textContent = `Oturum: ${value} | ${user.email || "-"} | uid: ${user.uid}`;
+}
+
+function createGithubRepoWithCode() {
+  const name = prompt("Repo adı", "arduino-blok-projem");
+  if (!name) return;
+  const content = btoa(unescape(encodeURIComponent(codeOutput.textContent || "")));
+  const body = {
+    name,
+    private: true,
+    auto_init: false,
+  };
+  const setup = {
+    repoName: name,
+    codeBase64: content,
+  };
+  localStorage.setItem("pending_repo_setup", JSON.stringify(setup));
+  const url = `https://github.com/new?name=${encodeURIComponent(name)}`;
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
 async function loadFirebaseConfig() {
   const inlineConfig = window.ARDUINO_AUTH;
   const isInlineConfigured = inlineConfig && ["apiKey", "authDomain", "projectId", "appId"].every((key) => Boolean(inlineConfig[key]));
@@ -824,11 +882,14 @@ async function initializeAuth() {
     if (user) {
       await enforceIpBinding(user);
       if (!firebaseAuth.currentUser) return;
-      sessionUser.textContent = `Oturum: ${user.displayName || "Kullanıcı"} | ${user.email || "-"} | uid: ${user.uid}`;
+      const displayName = resolveDisplayName(user);
+      sessionUser.textContent = `Oturum: ${displayName} | ${user.email || "-"} | uid: ${user.uid}`;
       loginOverlay.classList.add("hidden");
       appRoot.classList.add("ready");
+      maybeAskUsername(user);
     } else {
       sessionUser.textContent = "Oturum: -";
+      usernameOverlay.classList.add("hidden");
       loginOverlay.classList.remove("hidden");
       appRoot.classList.remove("ready");
     }
@@ -967,6 +1028,8 @@ googleButton.addEventListener("click", handleGoogleLogin);
 githubButton.addEventListener("click", handleGithubLogin);
 toggleExamples.addEventListener("click", toggleExamplesPanel);
 logoutButton.addEventListener("click", () => firebaseAuth && signOut(firebaseAuth));
+saveUsernameButton.addEventListener("click", saveUsernameForCurrentUser);
+createRepoButton.addEventListener("click", createGithubRepoWithCode);
 
 resizers.forEach((resizer) => {
   resizer.addEventListener("pointerdown", handleResizerPointerDown);
