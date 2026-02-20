@@ -1,3 +1,15 @@
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+  onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
+  GithubAuthProvider,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+
 const canvas = document.getElementById("canvas");
 const codeOutput = document.getElementById("code-output");
 const flowSummary = document.getElementById("flow-summary");
@@ -10,13 +22,8 @@ const searchInput = document.getElementById("block-search");
 const connectionsSvg = document.getElementById("connections");
 const exampleButtons = document.querySelectorAll(".example");
 const loginOverlay = document.getElementById("login-overlay");
-const loginButton = document.getElementById("login-button");
-const registerButton = document.getElementById("register-button");
 const googleButton = document.getElementById("google-button");
-const tabLogin = document.getElementById("tab-login");
-const tabRegister = document.getElementById("tab-register");
-const authEmail = document.getElementById("auth-email");
-const authPassword = document.getElementById("auth-password");
+const githubButton = document.getElementById("github-button");
 const authMessage = document.getElementById("auth-message");
 const appRoot = document.getElementById("app");
 const logoutButton = document.getElementById("logout-button");
@@ -710,8 +717,6 @@ function handleKeyDown(event) {
 }
 
 let firebaseAuth = null;
-let isRegisterMode = false;
-let isRegistering = false;
 const LAST_IP_KEY = "arduino_last_ip";
 
 async function getCurrentIp() {
@@ -731,7 +736,7 @@ async function enforceIpBinding(user) {
   const key = `${LAST_IP_KEY}:${user.uid}`;
   const stored = localStorage.getItem(key);
   if (stored && stored !== ip) {
-    await firebaseAuth.signOut();
+    await signOut(firebaseAuth);
     showAuthMessage("Farklı IP algılandı, güvenlik için tekrar giriş yapın.", true);
     return;
   }
@@ -742,7 +747,7 @@ function formatAuthError(error) {
   if (!error || !error.code) return "Bilinmeyen bir doğrulama hatası.";
 
   if (error.code === "auth/configuration-not-found") {
-    return "Firebase Auth yapılandırması eksik: Console > Authentication > Sign-in method bölümünden Email/Password ve Google sağlayıcılarını etkinleştirip domaini doğrulayın.";
+    return "Firebase Auth yapılandırması eksik: Console > Authentication > Sign-in method bölümünde Google ve GitHub sağlayıcılarını etkinleştirin.";
   }
 
   if (error.code === "auth/unauthorized-domain") {
@@ -757,96 +762,52 @@ function showAuthMessage(message, isError = false) {
   authMessage.style.color = isError ? "#fca5a5" : "#9aa4b2";
 }
 
-function setAuthMode(registerMode) {
-  isRegisterMode = registerMode;
-  tabLogin.classList.toggle("active", !registerMode);
-  tabRegister.classList.toggle("active", registerMode);
-  loginButton.classList.toggle("hidden", registerMode);
-  registerButton.classList.toggle("hidden", !registerMode);
-}
-
-function handleLogin() {
-  if (!firebaseAuth) {
-    showAuthMessage("Firebase ayarları eksik. Aşağıdaki adımları tamamlayın.", true);
-    return;
-  }
-  firebaseAuth
-    .signInWithEmailAndPassword(authEmail.value.trim(), authPassword.value)
-    .catch((error) => showAuthMessage(formatAuthError(error), true));
-}
-
-function handleRegister() {
-  if (!firebaseAuth) {
-    showAuthMessage("Firebase ayarları eksik. Aşağıdaki adımları tamamlayın.", true);
-    return;
-  }
-
-  const triggerEmailVerification = (currentUser) => {
-    if (!currentUser) {
-      throw new Error("Doğrulama e-postası için aktif kullanıcı bulunamadı.");
-    }
-    return currentUser.sendEmailVerification();
-  };
-
-  isRegistering = true;
-  firebaseAuth
-    .createUserWithEmailAndPassword(authEmail.value.trim(), authPassword.value)
-    .then(({ user }) => {
-      const activeUser = user || firebaseAuth.currentUser;
-      return triggerEmailVerification(activeUser).then(() => activeUser);
-    })
-    .then(async (activeUser) => {
-      console.log("Verification mail sent", activeUser?.email);
-      await firebaseAuth.signOut();
-      setAuthMode(false);
-      showAuthMessage("Doğrulama maili gönderildi. Maili onayladıktan sonra giriş yapın.");
-    })
-    .catch((error) => showAuthMessage(formatAuthError(error), true))
-    .finally(() => {
-      isRegistering = false;
-    });
-}
-
 function handleGoogleLogin() {
   if (!firebaseAuth) {
     showAuthMessage("Firebase ayarları eksik. Aşağıdaki adımları tamamlayın.", true);
     return;
   }
-  const provider = new firebase.auth.GoogleAuthProvider();
-  firebaseAuth.signInWithPopup(provider).catch((error) => showAuthMessage(formatAuthError(error), true));
+  const provider = new GoogleAuthProvider();
+  signInWithPopup(firebaseAuth, provider)
+    .then((credential) => {
+      const user = credential.user;
+      console.log("OAuth user", { uid: user.uid, displayName: user.displayName, email: user.email });
+    })
+    .catch((error) => showAuthMessage(formatAuthError(error), true));
+}
+
+function handleGithubLogin() {
+  if (!firebaseAuth) {
+    showAuthMessage("Firebase ayarları eksik. Aşağıdaki adımları tamamlayın.", true);
+    return;
+  }
+  const provider = new GithubAuthProvider();
+  signInWithPopup(firebaseAuth, provider)
+    .then((credential) => {
+      const user = credential.user;
+      console.log("OAuth user", { uid: user.uid, displayName: user.displayName, email: user.email });
+    })
+    .catch((error) => showAuthMessage(formatAuthError(error), true));
 }
 
 function initializeAuth() {
   const config = window.ARDUINO_AUTH || {};
-  const isConfigured = ["apiKey", "authDomain", "projectId", "appId"].every((key) => Boolean(config[key]));
+  const isConfigured = ["apiKey", "authDomain", "projectId", "appId"].every((key) => Boolean(config[key]) && !String(config[key]).startsWith("__"));
 
-  if (!window.firebase || !isConfigured) {
+  if (!isConfigured) {
     showAuthMessage("Firebase yapılandırmasını index.html içindeki ARDUINO_AUTH alanına girin.", true);
     return;
   }
 
-  if (!firebase.apps.length) {
-    firebase.initializeApp(config);
-  }
+  const app = getApps().length ? getApps()[0] : initializeApp(config);
+  firebaseAuth = getAuth(app);
+  setPersistence(firebaseAuth, browserLocalPersistence).catch(() => {});
 
-  firebaseAuth = firebase.auth();
-  firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
-
-  firebaseAuth.onAuthStateChanged(async (user) => {
+  onAuthStateChanged(firebaseAuth, async (user) => {
     if (user) {
-      const isPasswordUser = user.providerData.some((p) => p.providerId === "password");
-      if (!user.emailVerified && isPasswordUser) {
-        if (isRegistering) {
-          showAuthMessage("Hesap oluşturuluyor, doğrulama maili hazırlanıyor...");
-          return;
-        }
-        showAuthMessage("E-posta doğrulaması gerekli. Lütfen kutunuzu kontrol edin.", true);
-        await firebaseAuth.signOut();
-        return;
-      }
       await enforceIpBinding(user);
       if (!firebaseAuth.currentUser) return;
-      sessionUser.textContent = `Oturum: ${user.email || "Google Kullanıcısı"}`;
+      sessionUser.textContent = `Oturum: ${user.displayName || "Kullanıcı"} | ${user.email || "-"} | uid: ${user.uid}`;
       loginOverlay.classList.add("hidden");
       appRoot.classList.add("ready");
     } else {
@@ -985,13 +946,10 @@ exampleButtons.forEach((button) => {
   });
 });
 
-loginButton.addEventListener("click", handleLogin);
-registerButton.addEventListener("click", handleRegister);
 googleButton.addEventListener("click", handleGoogleLogin);
-tabLogin.addEventListener("click", () => setAuthMode(false));
-tabRegister.addEventListener("click", () => setAuthMode(true));
+githubButton.addEventListener("click", handleGithubLogin);
 toggleExamples.addEventListener("click", toggleExamplesPanel);
-logoutButton.addEventListener("click", () => firebaseAuth && firebaseAuth.signOut());
+logoutButton.addEventListener("click", () => firebaseAuth && signOut(firebaseAuth));
 
 resizers.forEach((resizer) => {
   resizer.addEventListener("pointerdown", handleResizerPointerDown);
@@ -999,7 +957,6 @@ resizers.forEach((resizer) => {
   resizer.addEventListener("pointerup", handleResizerPointerUp);
 });
 
-setAuthMode(false);
 initializeAuth();
 renderPreviews();
 updateUI();
