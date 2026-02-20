@@ -790,12 +790,29 @@ function handleGithubLogin() {
     .catch((error) => showAuthMessage(formatAuthError(error), true));
 }
 
-function initializeAuth() {
-  const config = window.ARDUINO_AUTH || {};
-  const isConfigured = ["apiKey", "authDomain", "projectId", "appId"].every((key) => Boolean(config[key]) && !String(config[key]).startsWith("__"));
+async function loadFirebaseConfig() {
+  const inlineConfig = window.ARDUINO_AUTH;
+  const isInlineConfigured = inlineConfig && ["apiKey", "authDomain", "projectId", "appId"].every((key) => Boolean(inlineConfig[key]));
+  if (isInlineConfigured) {
+    return inlineConfig;
+  }
 
-  if (!isConfigured) {
-    showAuthMessage("Firebase yapılandırmasını index.html içindeki ARDUINO_AUTH alanına girin.", true);
+  try {
+    const response = await fetch("/api/firebase-config", { cache: "no-store" });
+    if (!response.ok) return null;
+    const remoteConfig = await response.json();
+    const isRemoteConfigured = ["apiKey", "authDomain", "projectId", "appId"].every((key) => Boolean(remoteConfig[key]));
+    return isRemoteConfigured ? remoteConfig : null;
+  } catch {
+    return null;
+  }
+}
+
+async function initializeAuth() {
+  const config = await loadFirebaseConfig();
+
+  if (!config) {
+    showAuthMessage("Firebase yapılandırması bulunamadı. Vercel env değişkenlerini (FIREBASE_*) tanımlayın.", true);
     return;
   }
 
@@ -957,6 +974,6 @@ resizers.forEach((resizer) => {
   resizer.addEventListener("pointerup", handleResizerPointerUp);
 });
 
-initializeAuth();
+initializeAuth().catch(() => showAuthMessage("Firebase başlatılırken beklenmeyen bir hata oluştu.", true));
 renderPreviews();
 updateUI();

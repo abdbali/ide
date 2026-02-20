@@ -143,13 +143,8 @@
     </div>
 
     <script>
-      window.ARDUINO_AUTH = {
-        apiKey: "__FIREBASE_API_KEY__",
-        authDomain: "__FIREBASE_AUTH_DOMAIN__",
-        projectId: "__FIREBASE_PROJECT_ID__",
-        appId: "__FIREBASE_APP_ID__",
-        githubProviderId: "",
-      };
+      // İsteğe bağlı: local geliştirmede bu nesneyi doldurabilirsiniz.
+      window.ARDUINO_AUTH = window.ARDUINO_AUTH || null;
     </script>
     <script type="module" src="app.js"></script>
   </body>
