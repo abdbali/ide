@@ -838,10 +838,17 @@ function saveUsernameForCurrentUser() {
   sessionUser.textContent = `Oturum: ${value} | ${user.email || "-"} | uid: ${user.uid}`;
 }
 
+
+function handleUsernameOverlayKeydown(event) {
+  if (event.key !== "Escape" || usernameOverlay.classList.contains("hidden")) return;
+  closeUsernamePromptForCurrentUser();
+}
+
 function closeUsernamePromptForCurrentUser() {
   const user = firebaseAuth?.currentUser;
-  if (!user) return;
-  localStorage.setItem(getUsernamePromptSeenKey(user), "1");
+  if (user) {
+    localStorage.setItem(getUsernamePromptSeenKey(user), "1");
+  }
   usernameOverlay.classList.add("hidden");
 }
 
@@ -1045,6 +1052,7 @@ toggleExamples.addEventListener("click", toggleExamplesPanel);
 logoutButton.addEventListener("click", () => firebaseAuth && signOut(firebaseAuth));
 saveUsernameButton.addEventListener("click", saveUsernameForCurrentUser);
 closeUsernameButton.addEventListener("click", closeUsernamePromptForCurrentUser);
+document.addEventListener("keydown", handleUsernameOverlayKeydown);
 createRepoButton.addEventListener("click", createGithubRepoWithCode);
 
 resizers.forEach((resizer) => {
