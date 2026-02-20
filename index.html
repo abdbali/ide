@@ -10,8 +10,26 @@
     <div class="login-overlay" id="login-overlay">
       <div class="login-card glass">
         <h2>Arduino Blok IDE</h2>
-        <p>Devam etmek için giriş yapın</p>
+        <p>E-posta ile üye ol veya giriş yap</p>
+
+        <div class="auth-tabs">
+          <button id="tab-login" class="active" type="button">Giriş</button>
+          <button id="tab-register" type="button">Üye Ol</button>
+        </div>
+
+        <label>
+          E-posta
+          <input type="email" id="auth-email" placeholder="ornek@mail.com" />
+        </label>
+        <label>
+          Şifre
+          <input type="password" id="auth-password" placeholder="En az 6 karakter" />
+        </label>
+
         <button class="login-button" id="login-button">Giriş yap</button>
+        <button class="secondary-button hidden" id="register-button">Üye ol</button>
+        <button class="secondary-button" id="google-button">Google ile devam et</button>
+        <small id="auth-message">Doğrulama e-postası kayıt sırasında gönderilir.</small>
       </div>
     </div>
 
@@ -136,6 +154,16 @@
       </aside>
     </div>
 
+    <script>
+      window.ARDUINO_AUTH = {
+        apiKey: "AIzaSyATV7WxXcGVrkCVitwH8qsdD88YQnYd6eI",
+        authDomain: "ide-user.firebaseapp.com",
+        projectId: "ide-user",
+        appId: "1:960891528194:web:0dad346a10cf16797f731b",
+      };
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

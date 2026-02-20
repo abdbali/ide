@@ -11,6 +11,13 @@ const connectionsSvg = document.getElementById("connections");
 const exampleButtons = document.querySelectorAll(".example");
 const loginOverlay = document.getElementById("login-overlay");
 const loginButton = document.getElementById("login-button");
+const registerButton = document.getElementById("register-button");
+const googleButton = document.getElementById("google-button");
+const tabLogin = document.getElementById("tab-login");
+const tabRegister = document.getElementById("tab-register");
+const authEmail = document.getElementById("auth-email");
+const authPassword = document.getElementById("auth-password");
+const authMessage = document.getElementById("auth-message");
 const appRoot = document.getElementById("app");
 const clearSerial = document.getElementById("clear-serial");
 const serialBody = document.getElementById("serial-body");
@@ -700,9 +707,76 @@ function handleKeyDown(event) {
   }
 }
 
+let firebaseAuth = null;
+let isRegisterMode = false;
+
+function showAuthMessage(message, isError = false) {
+  authMessage.textContent = message;
+  authMessage.style.color = isError ? "#fca5a5" : "#9aa4b2";
+}
+
+function setAuthMode(registerMode) {
+  isRegisterMode = registerMode;
+  tabLogin.classList.toggle("active", !registerMode);
+  tabRegister.classList.toggle("active", registerMode);
+  loginButton.classList.toggle("hidden", registerMode);
+  registerButton.classList.toggle("hidden", !registerMode);
+}
+
 function handleLogin() {
-  loginOverlay.classList.add("hidden");
-  appRoot.classList.add("ready");
+  if (!firebaseAuth) {
+    showAuthMessage("Firebase ayarları eksik. Aşağıdaki adımları tamamlayın.", true);
+    return;
+  }
+  firebaseAuth
+    .signInWithEmailAndPassword(authEmail.value.trim(), authPassword.value)
+    .catch((error) => showAuthMessage(error.message, true));
+}
+
+function handleRegister() {
+  if (!firebaseAuth) {
+    showAuthMessage("Firebase ayarları eksik. Aşağıdaki adımları tamamlayın.", true);
+    return;
+  }
+  firebaseAuth
+    .createUserWithEmailAndPassword(authEmail.value.trim(), authPassword.value)
+    .then(({ user }) => user.sendEmailVerification())
+    .then(() => showAuthMessage("Üyelik tamamlandı. E-posta doğrulama bağlantısını kontrol edin."))
+    .catch((error) => showAuthMessage(error.message, true));
+}
+
+function handleGoogleLogin() {
+  if (!firebaseAuth) {
+    showAuthMessage("Firebase ayarları eksik. Aşağıdaki adımları tamamlayın.", true);
+    return;
+  }
+  const provider = new firebase.auth.GoogleAuthProvider();
+  firebaseAuth.signInWithPopup(provider).catch((error) => showAuthMessage(error.message, true));
+}
+
+function initializeAuth() {
+  const config = window.ARDUINO_AUTH || {};
+  const isConfigured = ["apiKey", "authDomain", "projectId", "appId"].every((key) => Boolean(config[key]));
+
+  if (!window.firebase || !isConfigured) {
+    showAuthMessage("Firebase yapılandırmasını index.html içindeki ARDUINO_AUTH alanına girin.", true);
+    return;
+  }
+
+  if (!firebase.apps.length) {
+    firebase.initializeApp(config);
+  }
+
+  firebaseAuth = firebase.auth();
+  firebaseAuth.onAuthStateChanged((user) => {
+    if (user) {
+      loginOverlay.classList.add("hidden");
+      appRoot.classList.add("ready");
+    } else {
+      loginOverlay.classList.remove("hidden");
+      appRoot.classList.remove("ready");
+    }
+  });
 }
 
 function toggleExamplesPanel() {
@@ -834,6 +908,10 @@ exampleButtons.forEach((button) => {
 });
 
 loginButton.addEventListener("click", handleLogin);
+registerButton.addEventListener("click", handleRegister);
+googleButton.addEventListener("click", handleGoogleLogin);
+tabLogin.addEventListener("click", () => setAuthMode(false));
+tabRegister.addEventListener("click", () => setAuthMode(true));
 toggleExamples.addEventListener("click", toggleExamplesPanel);
 
 resizers.forEach((resizer) => {
@@ -842,5 +920,7 @@ resizers.forEach((resizer) => {
   resizer.addEventListener("pointerup", handleResizerPointerUp);
 });
 
+setAuthMode(false);
+initializeAuth();
 renderPreviews();
 updateUI();
