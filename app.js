@@ -710,6 +710,21 @@ function handleKeyDown(event) {
 let firebaseAuth = null;
 let isRegisterMode = false;
 
+
+function formatAuthError(error) {
+  if (!error || !error.code) return "Bilinmeyen bir doğrulama hatası.";
+
+  if (error.code === "auth/configuration-not-found") {
+    return "Firebase Auth yapılandırması eksik: Console > Authentication > Sign-in method bölümünden Email/Password ve Google sağlayıcılarını etkinleştirip domaini doğrulayın.";
+  }
+
+  if (error.code === "auth/unauthorized-domain") {
+    return "Bu domain yetkili değil. Firebase Console > Authentication > Settings > Authorized domains listesine domaininizi ekleyin.";
+  }
+
+  return error.message || "Kimlik doğrulama hatası.";
+}
+
 function showAuthMessage(message, isError = false) {
   authMessage.textContent = message;
   authMessage.style.color = isError ? "#fca5a5" : "#9aa4b2";
@@ -730,7 +745,7 @@ function handleLogin() {
   }
   firebaseAuth
     .signInWithEmailAndPassword(authEmail.value.trim(), authPassword.value)
-    .catch((error) => showAuthMessage(error.message, true));
+    .catch((error) => showAuthMessage(formatAuthError(error), true));
 }
 
 function handleRegister() {
@@ -742,7 +757,7 @@ function handleRegister() {
     .createUserWithEmailAndPassword(authEmail.value.trim(), authPassword.value)
     .then(({ user }) => user.sendEmailVerification())
     .then(() => showAuthMessage("Üyelik tamamlandı. E-posta doğrulama bağlantısını kontrol edin."))
-    .catch((error) => showAuthMessage(error.message, true));
+    .catch((error) => showAuthMessage(formatAuthError(error), true));
 }
 
 function handleGoogleLogin() {
@@ -751,7 +766,7 @@ function handleGoogleLogin() {
     return;
   }
   const provider = new firebase.auth.GoogleAuthProvider();
-  firebaseAuth.signInWithPopup(provider).catch((error) => showAuthMessage(error.message, true));
+  firebaseAuth.signInWithPopup(provider).catch((error) => showAuthMessage(formatAuthError(error), true));
 }
 
 function initializeAuth() {
