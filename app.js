@@ -711,6 +711,7 @@ function handleKeyDown(event) {
 
 let firebaseAuth = null;
 let isRegisterMode = false;
+let isRegistering = false;
 const LAST_IP_KEY = "arduino_last_ip";
 
 async function getCurrentIp() {
@@ -787,11 +788,23 @@ function handleRegister() {
     return currentUser.sendEmailVerification();
   };
 
+  isRegistering = true;
   firebaseAuth
     .createUserWithEmailAndPassword(authEmail.value.trim(), authPassword.value)
-    .then(({ user }) => triggerEmailVerification(user || firebaseAuth.currentUser))
-    .then(() => showAuthMessage("Doğrulama maili gönderildi. E-posta kutunuzu kontrol edin."))
-    .catch((error) => showAuthMessage(formatAuthError(error), true));
+    .then(({ user }) => {
+      const activeUser = user || firebaseAuth.currentUser;
+      return triggerEmailVerification(activeUser).then(() => activeUser);
+    })
+    .then(async (activeUser) => {
+      console.log("Verification mail sent", activeUser?.email);
+      await firebaseAuth.signOut();
+      setAuthMode(false);
+      showAuthMessage("Doğrulama maili gönderildi. Maili onayladıktan sonra giriş yapın.");
+    })
+    .catch((error) => showAuthMessage(formatAuthError(error), true))
+    .finally(() => {
+      isRegistering = false;
+    });
 }
 
 function handleGoogleLogin() {
@@ -821,7 +834,12 @@ function initializeAuth() {
 
   firebaseAuth.onAuthStateChanged(async (user) => {
     if (user) {
-      if (!user.emailVerified && user.providerData.some((p) => p.providerId === "password")) {
+      const isPasswordUser = user.providerData.some((p) => p.providerId === "password");
+      if (!user.emailVerified && isPasswordUser) {
+        if (isRegistering) {
+          showAuthMessage("Hesap oluşturuluyor, doğrulama maili hazırlanıyor...");
+          return;
+        }
         showAuthMessage("E-posta doğrulaması gerekli. Lütfen kutunuzu kontrol edin.", true);
         await firebaseAuth.signOut();
         return;
