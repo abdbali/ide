@@ -779,10 +779,18 @@ function handleRegister() {
     showAuthMessage("Firebase ayarları eksik. Aşağıdaki adımları tamamlayın.", true);
     return;
   }
+
+  const triggerEmailVerification = (currentUser) => {
+    if (!currentUser) {
+      throw new Error("Doğrulama e-postası için aktif kullanıcı bulunamadı.");
+    }
+    return currentUser.sendEmailVerification();
+  };
+
   firebaseAuth
     .createUserWithEmailAndPassword(authEmail.value.trim(), authPassword.value)
-    .then(({ user }) => user.sendEmailVerification())
-    .then(() => showAuthMessage("Üyelik tamamlandı. E-posta doğrulama bağlantısını kontrol edin."))
+    .then(({ user }) => triggerEmailVerification(user || firebaseAuth.currentUser))
+    .then(() => showAuthMessage("Doğrulama maili gönderildi. E-posta kutunuzu kontrol edin."))
     .catch((error) => showAuthMessage(formatAuthError(error), true));
 }
 
