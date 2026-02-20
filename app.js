@@ -694,7 +694,7 @@ function handleCanvasClick(event) {
 
 function handleKeyDown(event) {
   if (!selectedBlockId) return;
-  if (event.key === "Backspace" || event.key === "Delete") {
+  if (event.key === "Delete") {
     event.preventDefault();
     removeBlock(selectedBlockId);
   }
