@@ -32,6 +32,7 @@ const sessionUser = document.getElementById("session-user");
 const usernameOverlay = document.getElementById("username-overlay");
 const usernameInput = document.getElementById("username-input");
 const saveUsernameButton = document.getElementById("save-username");
+const closeUsernameButton = document.getElementById("close-username");
 const usernameMessage = document.getElementById("username-message");
 const clearSerial = document.getElementById("clear-serial");
 const serialBody = document.getElementById("serial-body");
@@ -800,6 +801,10 @@ function getUsernameKey(user) {
   return `arduino_username:${user.uid}`;
 }
 
+function getUsernamePromptSeenKey(user) {
+  return `arduino_username_prompt_seen:${user.uid}`;
+}
+
 function resolveDisplayName(user) {
   const saved = localStorage.getItem(getUsernameKey(user));
   return saved || user.displayName || user.email || "Kullanıcı";
@@ -807,8 +812,10 @@ function resolveDisplayName(user) {
 
 function maybeAskUsername(user) {
   const key = getUsernameKey(user);
+  const seenKey = getUsernamePromptSeenKey(user);
   const existing = localStorage.getItem(key);
-  if (existing) {
+  const promptSeen = localStorage.getItem(seenKey) === "1";
+  if (existing || promptSeen) {
     usernameOverlay.classList.add("hidden");
     return;
   }
@@ -826,8 +833,23 @@ function saveUsernameForCurrentUser() {
     return;
   }
   localStorage.setItem(getUsernameKey(user), value);
+  localStorage.setItem(getUsernamePromptSeenKey(user), "1");
   usernameOverlay.classList.add("hidden");
   sessionUser.textContent = `Oturum: ${value} | ${user.email || "-"} | uid: ${user.uid}`;
+}
+
+
+function handleUsernameOverlayKeydown(event) {
+  if (event.key !== "Escape" || usernameOverlay.classList.contains("hidden")) return;
+  closeUsernamePromptForCurrentUser();
+}
+
+function closeUsernamePromptForCurrentUser() {
+  const user = firebaseAuth?.currentUser;
+  if (user) {
+    localStorage.setItem(getUsernamePromptSeenKey(user), "1");
+  }
+  usernameOverlay.classList.add("hidden");
 }
 
 function createGithubRepoWithCode() {
@@ -1029,6 +1051,8 @@ githubButton.addEventListener("click", handleGithubLogin);
 toggleExamples.addEventListener("click", toggleExamplesPanel);
 logoutButton.addEventListener("click", () => firebaseAuth && signOut(firebaseAuth));
 saveUsernameButton.addEventListener("click", saveUsernameForCurrentUser);
+closeUsernameButton.addEventListener("click", closeUsernamePromptForCurrentUser);
+document.addEventListener("keydown", handleUsernameOverlayKeydown);
 createRepoButton.addEventListener("click", createGithubRepoWithCode);
 
 resizers.forEach((resizer) => {

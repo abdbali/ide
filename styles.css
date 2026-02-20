@@ -668,10 +668,34 @@ body {
 }
 
 .username-card {
+  position: relative;
   width: min(340px, 90vw);
   padding: 1.2rem;
   display: grid;
   gap: 0.6rem;
+}
+
+
+.username-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.8);
+  color: var(--text-soft);
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.username-close:hover {
+  color: var(--text);
+  border-color: rgba(154, 164, 178, 0.5);
 }
 
 .username-card input {
