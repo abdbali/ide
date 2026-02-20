@@ -19,6 +19,8 @@ const authEmail = document.getElementById("auth-email");
 const authPassword = document.getElementById("auth-password");
 const authMessage = document.getElementById("auth-message");
 const appRoot = document.getElementById("app");
+const logoutButton = document.getElementById("logout-button");
+const sessionUser = document.getElementById("session-user");
 const clearSerial = document.getElementById("clear-serial");
 const serialBody = document.getElementById("serial-body");
 const examplesPanel = document.getElementById("examples-panel");
@@ -709,7 +711,31 @@ function handleKeyDown(event) {
 
 let firebaseAuth = null;
 let isRegisterMode = false;
+const LAST_IP_KEY = "arduino_last_ip";
 
+async function getCurrentIp() {
+  try {
+    const response = await fetch("https://api.ipify.org?format=json", { cache: "no-store" });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.ip || null;
+  } catch {
+    return null;
+  }
+}
+
+async function enforceIpBinding(user) {
+  const ip = await getCurrentIp();
+  if (!ip) return;
+  const key = `${LAST_IP_KEY}:${user.uid}`;
+  const stored = localStorage.getItem(key);
+  if (stored && stored !== ip) {
+    await firebaseAuth.signOut();
+    showAuthMessage("Farklı IP algılandı, güvenlik için tekrar giriş yapın.", true);
+    return;
+  }
+  localStorage.setItem(key, ip);
+}
 
 function formatAuthError(error) {
   if (!error || !error.code) return "Bilinmeyen bir doğrulama hatası.";
@@ -783,11 +809,22 @@ function initializeAuth() {
   }
 
   firebaseAuth = firebase.auth();
-  firebaseAuth.onAuthStateChanged((user) => {
+  firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
+
+  firebaseAuth.onAuthStateChanged(async (user) => {
     if (user) {
+      if (!user.emailVerified && user.providerData.some((p) => p.providerId === "password")) {
+        showAuthMessage("E-posta doğrulaması gerekli. Lütfen kutunuzu kontrol edin.", true);
+        await firebaseAuth.signOut();
+        return;
+      }
+      await enforceIpBinding(user);
+      if (!firebaseAuth.currentUser) return;
+      sessionUser.textContent = `Oturum: ${user.email || "Google Kullanıcısı"}`;
       loginOverlay.classList.add("hidden");
       appRoot.classList.add("ready");
     } else {
+      sessionUser.textContent = "Oturum: -";
       loginOverlay.classList.remove("hidden");
       appRoot.classList.remove("ready");
     }
@@ -928,6 +965,7 @@ googleButton.addEventListener("click", handleGoogleLogin);
 tabLogin.addEventListener("click", () => setAuthMode(false));
 tabRegister.addEventListener("click", () => setAuthMode(true));
 toggleExamples.addEventListener("click", toggleExamplesPanel);
+logoutButton.addEventListener("click", () => firebaseAuth && firebaseAuth.signOut());
 
 resizers.forEach((resizer) => {
   resizer.addEventListener("pointerdown", handleResizerPointerDown);
