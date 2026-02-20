@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arduino Blok IDE</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="login-overlay" id="login-overlay">
+      <div class="login-card glass">
+        <h2>Arduino Blok IDE</h2>
+        <p>Sadece OAuth ile giriş yapın</p>
+        <button class="login-button" id="google-button">Google ile giriş yap</button>
+        <button class="secondary-button" id="github-button">GitHub ile giriş yap</button>
+        <small id="auth-message">Google veya GitHub hesabınızla devam edin.</small>
+      </div>
+    </div>
+
+    <div class="app" id="app">
+      <div class="session-bar glass" id="session-bar">
+        <span id="session-user">Oturum: -</span>
+        <button id="logout-button" type="button">Çıkış Yap</button>
+      </div>
+      <aside class="examples-panel glass" id="examples-panel">
+        <div class="panel-header-row">
+          <h2>Örnek Projeler</h2>
+          <button id="toggle-examples" aria-label="Örnekler panelini aç/kapat">⟷</button>
+        </div>
+        <div class="examples">
+          <button class="example" data-example="blink">LED Yak (Blink)</button>
+          <button class="example" data-example="fade">PWM Fade</button>
+          <button class="example" data-example="distance">Mesafe Alarmı</button>
+          <button class="example" data-example="climate">Sıcaklık/Nem</button>
+          <button class="example" data-example="servo">Servo Sweep</button>
+          <button class="example" data-example="rfid">RFID Kapı</button>
+          <button class="example" data-example="oled">OLED Mesaj</button>
+          <button class="example" data-example="motor">Motor & Yön</button>
+          <button class="example" data-example="iot">IoT Gönderim</button>
+          <button class="example" data-example="loop">Kontrol Akışı</button>
+        </div>
+      </aside>
+
+      <div class="resizer" data-resize="examples"></div>
+
+      <aside class="sidebar glass">
+        <div class="sidebar-header">
+          <h1>Arduino Blok IDE</h1>
+          <p>Blokları sürükleyin, akışı bağlayın</p>
+        </div>
+        <div class="search">
+          <input type="text" placeholder="Blok ara..." id="block-search" />
+        </div>
+
+        <div class="block-groups">
+          <details class="block-group" open>
+            <summary>Temel</summary>
+            <div class="block" draggable="true" data-type="print">Print</div>
+            <div class="block" draggable="true" data-type="delay">Delay</div>
+            <div class="block" draggable="true" data-type="repeat">Repeat</div>
+            <div class="block-preview" data-type="print"></div>
+            <div class="block-preview" data-type="delay"></div>
+          </details>
+          <details class="block-group" open>
+            <summary>Döngü & Koşul</summary>
+            <div class="block" draggable="true" data-type="if">If / Else</div>
+            <div class="block" draggable="true" data-type="for">For Loop</div>
+            <div class="block" draggable="true" data-type="while">While Loop</div>
+            <div class="block-preview" data-type="if"></div>
+          </details>
+          <details class="block-group" open>
+            <summary>GPIO</summary>
+            <div class="block" draggable="true" data-type="pin-write">Pin Write</div>
+            <div class="block" draggable="true" data-type="pin-read">Pin Read</div>
+            <div class="block" draggable="true" data-type="pwm">PWM</div>
+            <div class="block" draggable="true" data-type="buzzer">Buzzer Tone</div>
+            <div class="block-preview" data-type="pin-write"></div>
+          </details>
+          <details class="block-group">
+            <summary>Sensörler</summary>
+            <div class="block" draggable="true" data-type="ultrasonic">Ultrasonic Sensor</div>
+            <div class="block" draggable="true" data-type="dht">DHT11 Sensor</div>
+            <div class="block" draggable="true" data-type="rfid">RFID Sensor</div>
+            <div class="block-preview" data-type="dht"></div>
+          </details>
+          <details class="block-group">
+            <summary>Donanım</summary>
+            <div class="block" draggable="true" data-type="servo">Servo Motor</div>
+            <div class="block" draggable="true" data-type="oled">1.3in OLED</div>
+            <div class="block" draggable="true" data-type="wifi">WiFi Connect</div>
+            <div class="block" draggable="true" data-type="motor">L298N Motor Driver</div>
+            <div class="block-preview" data-type="servo"></div>
+          </details>
+        </div>
+      </aside>
+
+      <div class="resizer" data-resize="sidebar"></div>
+
+      <main class="workspace glass">
+        <header class="workspace-header">
+          <div class="actions">
+            <button id="clear-canvas">Temizle</button>
+            <button id="auto-layout">Akışı Düzenle</button>
+          </div>
+          <div class="status">
+            <span class="dot"></span>
+            Bloklar: <span id="block-count">0</span>
+          </div>
+        </header>
+        <section class="canvas" id="canvas" aria-label="Akış alanı">
+          <div class="canvas-hint">
+            Blokları buraya sürükleyin. Bağlantı noktalarına tıklayıp çizgiler oluşturun.
+          </div>
+          <svg class="connections" id="connections" aria-hidden="true"></svg>
+        </section>
+      </main>
+
+      <div class="resizer" data-resize="panel"></div>
+
+      <aside class="panel glass">
+        <header class="panel-header">
+          <h2>Oluşturulan Kod</h2>
+          <div class="panel-actions">
+            <button id="copy-code">Kopyala</button>
+            <button id="download-ino">.ino indir</button>
+          </div>
+        </header>
+        <pre class="code" id="code-output"></pre>
+        <div class="panel-footer">
+          <h3>Akış Özeti</h3>
+          <ul id="flow-summary"></ul>
+        </div>
+        <div class="serial-monitor">
+          <div class="serial-header">
+            <h3>Seri Monitör</h3>
+            <button id="clear-serial">Temizle</button>
+          </div>
+          <div class="serial-body" id="serial-body">
+            <p>&gt; Bağlantı bekleniyor...</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <script>
+      // İsteğe bağlı: local geliştirmede bu nesneyi doldurabilirsiniz.
+      window.ARDUINO_AUTH = window.ARDUINO_AUTH || null;
+    </script>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
