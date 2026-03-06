@@ -7,31 +7,64 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="login-overlay" id="login-overlay">
-      <div class="login-card glass">
-        <h2>Arduino Blok IDE</h2>
-        <p>Sadece OAuth ile giriş yapın</p>
-        <button class="login-button" id="google-button">Google ile giriş yap</button>
-        <button class="secondary-button" id="github-button">GitHub ile giriş yap</button>
-        <small id="auth-message">Google veya GitHub hesabınızla devam edin.</small>
-      </div>
-    </div>
+    <section class="landing" id="landing">
+      <div class="landing-card glass">
+        <h1>Arduino Programlamayı Herkes İçin Kolaylaştırıyoruz.</h1>
+        <p class="lead">Blokları sürükle, kodu oluştur, robotunu çalıştır.</p>
 
-    <div class="username-overlay hidden" id="username-overlay">
-      <div class="username-card glass">
-        <h3>Kullanıcı adını belirle</h3>
-        <p>Profil adın sol üstte görünecek.</p>
-        <input id="username-input" type="text" maxlength="24" placeholder="kullanici_adi" />
-        <button id="save-username" type="button">Kaydet</button>
-        <small id="username-message"></small>
+        <div class="slogans">
+          <span>Kod Yazmadan Arduino Öğren!</span>
+          <span>Blokları Birleştir, Elektroniği Canlandır.</span>
+          <span>Arduino Kodlama Artık Çocuk Oyuncağı.</span>
+        </div>
+
+        <p class="value-prop">
+          Bu platform, Arduino programlamayı blok tabanlı görsel kodlama ile herkes için erişilebilir hale getirir.
+          Öğrenciler, öğretmenler ve maker’lar sürükle-bırak bloklarla programlama mantığını öğrenirken aynı anda gerçek
+          Arduino kodu oluşturabilir.
+        </p>
+
+        <div class="feature-grid">
+          <article><h3>🧩 Blok Tabanlı Kodlama</h3><p>Programlama bilmeden Arduino projeleri oluşturun.</p></article>
+          <article><h3>⚡ Otomatik Kod Üretimi</h3><p>Bloklarınız otomatik olarak Arduino C++ koduna dönüşür.</p></article>
+          <article><h3>🎓 Eğitim Odaklı Tasarım</h3><p>Öğretmenler ve öğrenciler için özel hazırlanmış yapı.</p></article>
+          <article><h3>🔌 Donanım Entegrasyonu</h3><p>Sensörler, motorlar ve robot kitleri ile kolay bağlantı.</p></article>
+          <article><h3>🤖 STEM ve Robotik İçin İdeal</h3><p>Robotik ve maker eğitimleri için geliştirildi.</p></article>
+        </div>
+
+        <div class="target-grid">
+          <article><h4>👩‍🏫 Öğretmenler</h4><p>STEM dersleri, robotik kodlama eğitimleri, sınıf içi etkinlikler.</p></article>
+          <article><h4>👨‍🎓 Öğrenciler</h4><p>Programlama mantığını öğrenme, Arduino projeleri, robot yapma.</p></article>
+          <article><h4>🛠 Maker ve Hobiciler</h4><p>Hızlı prototip ve blok + kod hibrit geliştirme.</p></article>
+        </div>
+
+        <div class="impact">
+          <span>⚡ 5 dakika içinde ilk Arduino programını çalıştır</span>
+          <span>🎓 Kod bilmeden robot yapmaya başla</span>
+          <span>🧠 Algoritmik düşünmeyi geliştir</span>
+        </div>
+
+        <ol class="steps">
+          <li><strong>1️⃣ Blokları Sürükle:</strong> Arduino komutlarını blok olarak seç.</li>
+          <li><strong>2️⃣ Programı Oluştur:</strong> Algoritmanı görsel olarak kur.</li>
+          <li><strong>3️⃣ Arduino’ya Yükle:</strong> Tek tıkla kodu karta gönder.</li>
+        </ol>
+
+        <div class="cta-row">
+          <button id="start-ide" type="button">🚀 Hemen Başla</button>
+          <button id="open-demo" type="button">🎮 Demo Aç</button>
+          <button id="view-training" type="button">📚 Eğitimleri İncele</button>
+        </div>
+
+        <div class="trust-row">
+          <span>🎓 Eğitim amaçlı geliştirildi</span>
+          <span>🧪 STEM ve robotik eğitimleri için tasarlandı</span>
+          <span>🔓 Açık kaynak uyumlu</span>
+        </div>
       </div>
-    </div>
+    </section>
 
     <div class="app" id="app">
-      <div class="session-bar glass" id="session-bar">
-        <span id="session-user">Oturum: -</span>
-        <button id="logout-button" type="button">Çıkış Yap</button>
-      </div>
       <aside class="examples-panel glass" id="examples-panel">
         <div class="panel-header-row">
           <h2>Örnek Projeler</h2>

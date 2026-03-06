@@ -1,15 +1,3 @@
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-import {
-  getAuth,
-  setPersistence,
-  browserLocalPersistence,
-  onAuthStateChanged,
-  signInWithPopup,
-  GoogleAuthProvider,
-  GithubAuthProvider,
-  signOut,
-} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-
 const canvas = document.getElementById("canvas");
 const codeOutput = document.getElementById("code-output");
 const flowSummary = document.getElementById("flow-summary");
@@ -22,17 +10,10 @@ const createRepoButton = document.getElementById("create-repo");
 const searchInput = document.getElementById("block-search");
 const connectionsSvg = document.getElementById("connections");
 const exampleButtons = document.querySelectorAll(".example");
-const loginOverlay = document.getElementById("login-overlay");
-const googleButton = document.getElementById("google-button");
-const githubButton = document.getElementById("github-button");
-const authMessage = document.getElementById("auth-message");
 const appRoot = document.getElementById("app");
-const logoutButton = document.getElementById("logout-button");
-const sessionUser = document.getElementById("session-user");
-const usernameOverlay = document.getElementById("username-overlay");
-const usernameInput = document.getElementById("username-input");
-const saveUsernameButton = document.getElementById("save-username");
-const usernameMessage = document.getElementById("username-message");
+const startIdeButton = document.getElementById("start-ide");
+const openDemoButton = document.getElementById("open-demo");
+const viewTrainingButton = document.getElementById("view-training");
 const clearSerial = document.getElementById("clear-serial");
 const serialBody = document.getElementById("serial-body");
 const examplesPanel = document.getElementById("examples-panel");
@@ -721,124 +702,27 @@ function handleKeyDown(event) {
   }
 }
 
-let firebaseAuth = null;
-const LAST_IP_KEY = "arduino_last_ip";
-
-async function getCurrentIp() {
-  try {
-    const response = await fetch("https://api.ipify.org?format=json", { cache: "no-store" });
-    if (!response.ok) return null;
-    const data = await response.json();
-    return data.ip || null;
-  } catch {
-    return null;
-  }
+function enterIde() {
+  document.body.classList.add("started");
+  appRoot.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-async function enforceIpBinding(user) {
-  const ip = await getCurrentIp();
-  if (!ip) return;
-  const key = `${LAST_IP_KEY}:${user.uid}`;
-  const stored = localStorage.getItem(key);
-  if (stored && stored !== ip) {
-    await signOut(firebaseAuth);
-    showAuthMessage("Farklı IP algılandı, güvenlik için tekrar giriş yapın.", true);
-    return;
-  }
-  localStorage.setItem(key, ip);
+function openDemo() {
+  enterIde();
+  loadExample("blink");
 }
 
-function formatAuthError(error) {
-  if (!error || !error.code) return "Bilinmeyen bir doğrulama hatası.";
-
-  if (error.code === "auth/configuration-not-found") {
-    return "Firebase Auth yapılandırması eksik: Console > Authentication > Sign-in method bölümünde Google ve GitHub sağlayıcılarını etkinleştirin.";
-  }
-
-  if (error.code === "auth/unauthorized-domain") {
-    return "Bu domain yetkili değil. Firebase Console > Authentication > Settings > Authorized domains listesine domaininizi ekleyin.";
-  }
-
-  return error.message || "Kimlik doğrulama hatası.";
+function scrollToTraining() {
+  const target = document.querySelector(".feature-grid");
+  if (!target) return;
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function showAuthMessage(message, isError = false) {
-  authMessage.textContent = message;
-  authMessage.style.color = isError ? "#fca5a5" : "#9aa4b2";
-}
-
-function handleGoogleLogin() {
-  if (!firebaseAuth) {
-    showAuthMessage("Firebase ayarları eksik. Aşağıdaki adımları tamamlayın.", true);
-    return;
-  }
-  const provider = new GoogleAuthProvider();
-  signInWithPopup(firebaseAuth, provider)
-    .then((credential) => {
-      const user = credential.user;
-      console.log("OAuth user", { uid: user.uid, displayName: user.displayName, email: user.email });
-    })
-    .catch((error) => showAuthMessage(formatAuthError(error), true));
-}
-
-function handleGithubLogin() {
-  if (!firebaseAuth) {
-    showAuthMessage("Firebase ayarları eksik. Aşağıdaki adımları tamamlayın.", true);
-    return;
-  }
-  const provider = new GithubAuthProvider();
-  signInWithPopup(firebaseAuth, provider)
-    .then((credential) => {
-      const user = credential.user;
-      console.log("OAuth user", { uid: user.uid, displayName: user.displayName, email: user.email });
-    })
-    .catch((error) => showAuthMessage(formatAuthError(error), true));
-}
-
-
-function getUsernameKey(user) {
-  return `arduino_username:${user.uid}`;
-}
-
-function resolveDisplayName(user) {
-  const saved = localStorage.getItem(getUsernameKey(user));
-  return saved || user.displayName || user.email || "Kullanıcı";
-}
-
-function maybeAskUsername(user) {
-  const key = getUsernameKey(user);
-  const existing = localStorage.getItem(key);
-  if (existing) {
-    usernameOverlay.classList.add("hidden");
-    return;
-  }
-  usernameOverlay.classList.remove("hidden");
-  usernameInput.value = "";
-  usernameMessage.textContent = "";
-}
-
-function saveUsernameForCurrentUser() {
-  const user = firebaseAuth?.currentUser;
-  if (!user) return;
-  const value = usernameInput.value.trim();
-  if (value.length < 3) {
-    usernameMessage.textContent = "Kullanıcı adı en az 3 karakter olmalı.";
-    return;
-  }
-  localStorage.setItem(getUsernameKey(user), value);
-  usernameOverlay.classList.add("hidden");
-  sessionUser.textContent = `Oturum: ${value} | ${user.email || "-"} | uid: ${user.uid}`;
-}
 
 function createGithubRepoWithCode() {
   const name = prompt("Repo adı", "arduino-blok-projem");
   if (!name) return;
   const content = btoa(unescape(encodeURIComponent(codeOutput.textContent || "")));
-  const body = {
-    name,
-    private: true,
-    auto_init: false,
-  };
   const setup = {
     repoName: name,
     codeBase64: content,
@@ -846,54 +730,6 @@ function createGithubRepoWithCode() {
   localStorage.setItem("pending_repo_setup", JSON.stringify(setup));
   const url = `https://github.com/new?name=${encodeURIComponent(name)}`;
   window.open(url, "_blank", "noopener,noreferrer");
-}
-
-async function loadFirebaseConfig() {
-  const inlineConfig = window.ARDUINO_AUTH;
-  const isInlineConfigured = inlineConfig && ["apiKey", "authDomain", "projectId", "appId"].every((key) => Boolean(inlineConfig[key]));
-  if (isInlineConfigured) {
-    return inlineConfig;
-  }
-
-  try {
-    const response = await fetch("/api/firebase-config", { cache: "no-store" });
-    if (!response.ok) return null;
-    const remoteConfig = await response.json();
-    const isRemoteConfigured = ["apiKey", "authDomain", "projectId", "appId"].every((key) => Boolean(remoteConfig[key]));
-    return isRemoteConfigured ? remoteConfig : null;
-  } catch {
-    return null;
-  }
-}
-
-async function initializeAuth() {
-  const config = await loadFirebaseConfig();
-
-  if (!config) {
-    showAuthMessage("Firebase yapılandırması bulunamadı. Vercel env değişkenlerini (FIREBASE_*) tanımlayın.", true);
-    return;
-  }
-
-  const app = getApps().length ? getApps()[0] : initializeApp(config);
-  firebaseAuth = getAuth(app);
-  setPersistence(firebaseAuth, browserLocalPersistence).catch(() => {});
-
-  onAuthStateChanged(firebaseAuth, async (user) => {
-    if (user) {
-      await enforceIpBinding(user);
-      if (!firebaseAuth.currentUser) return;
-      const displayName = resolveDisplayName(user);
-      sessionUser.textContent = `Oturum: ${displayName} | ${user.email || "-"} | uid: ${user.uid}`;
-      loginOverlay.classList.add("hidden");
-      appRoot.classList.add("ready");
-      maybeAskUsername(user);
-    } else {
-      sessionUser.textContent = "Oturum: -";
-      usernameOverlay.classList.add("hidden");
-      loginOverlay.classList.remove("hidden");
-      appRoot.classList.remove("ready");
-    }
-  });
 }
 
 function toggleExamplesPanel() {
@@ -1024,12 +860,12 @@ exampleButtons.forEach((button) => {
   });
 });
 
-googleButton.addEventListener("click", handleGoogleLogin);
-githubButton.addEventListener("click", handleGithubLogin);
 toggleExamples.addEventListener("click", toggleExamplesPanel);
-logoutButton.addEventListener("click", () => firebaseAuth && signOut(firebaseAuth));
-saveUsernameButton.addEventListener("click", saveUsernameForCurrentUser);
 createRepoButton.addEventListener("click", createGithubRepoWithCode);
+
+startIdeButton.addEventListener("click", enterIde);
+openDemoButton.addEventListener("click", openDemo);
+viewTrainingButton.addEventListener("click", scrollToTraining);
 
 resizers.forEach((resizer) => {
   resizer.addEventListener("pointerdown", handleResizerPointerDown);
@@ -1037,6 +873,5 @@ resizers.forEach((resizer) => {
   resizer.addEventListener("pointerup", handleResizerPointerUp);
 });
 
-initializeAuth().catch(() => showAuthMessage("Firebase başlatılırken beklenmeyen bir hata oluştu.", true));
 renderPreviews();
 updateUI();
