@@ -3,35 +3,86 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" />
     <title>Arduino Blok IDE</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="login-overlay" id="login-overlay">
-      <div class="login-card glass">
-        <h2>Arduino Blok IDE</h2>
-        <p>Sadece OAuth ile giriş yapın</p>
-        <button class="login-button" id="google-button">Google ile giriş yap</button>
-        <button class="secondary-button" id="github-button">GitHub ile giriş yap</button>
-        <small id="auth-message">Google veya GitHub hesabınızla devam edin.</small>
-      </div>
-    </div>
+    <header class="topbar glass">
+      <div class="topbar-brand">Arduino Blok IDE</div>
+      <nav class="topbar-nav" aria-label="Ana menü">
+        <button id="nav-home" type="button">Anasayfa</button>
+        <button id="nav-ide" type="button">IDE</button>
+        <button id="nav-demo" type="button">Demo</button>
+        <a href="https://github.com/abdbali/ide" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </nav>
+    </header>
 
-    <div class="username-overlay hidden" id="username-overlay">
-      <div class="username-card glass">
-        <h3>Kullanıcı adını belirle</h3>
-        <p>Profil adın sol üstte görünecek.</p>
-        <input id="username-input" type="text" maxlength="24" placeholder="kullanici_adi" />
-        <button id="save-username" type="button">Kaydet</button>
-        <small id="username-message"></small>
+    <section class="landing" id="landing">
+      <div class="landing-card glass">
+        <h1>Arduino Programlamayı Herkes İçin Kolaylaştırıyoruz.</h1>
+        <p class="lead">Blokları sürükle, kodu oluştur, robotunu çalıştır.</p>
+
+        <div class="slogans">
+          <span>Kod Yazmadan Arduino Öğren!</span>
+          <span>Blokları Birleştir, Elektroniği Canlandır.</span>
+          <span>Arduino Kodlama Artık Çocuk Oyuncağı.</span>
+        </div>
+
+        <p class="value-prop">
+          Bu platform, Arduino programlamayı blok tabanlı görsel kodlama ile herkes için erişilebilir hale getirir.
+          Öğrenciler, öğretmenler ve maker’lar sürükle-bırak bloklarla programlama mantığını öğrenirken aynı anda gerçek
+          Arduino kodu oluşturabilir.
+        </p>
+
+        <div class="feature-grid">
+          <article><h3>Blok Tabanlı Kodlama</h3><p>Programlama bilmeden Arduino projeleri oluşturun.</p></article>
+          <article><h3>Otomatik Kod Üretimi</h3><p>Bloklarınız otomatik olarak Arduino C++ koduna dönüşür.</p></article>
+          <article><h3>Eğitim Odaklı Tasarım</h3><p>Öğretmenler ve öğrenciler için özel hazırlanmış yapı.</p></article>
+          <article><h3>Donanım Entegrasyonu</h3><p>Sensörler, motorlar ve robot kitleri ile kolay bağlantı.</p></article>
+          <article><h3>STEM ve Robotik İçin İdeal</h3><p>Robotik ve maker eğitimleri için geliştirildi.</p></article>
+        </div>
+
+        <div class="target-grid">
+          <article><h4>Öğretmenler</h4><p>STEM dersleri, robotik kodlama eğitimleri, sınıf içi etkinlikler.</p></article>
+          <article><h4>Öğrenciler</h4><p>Programlama mantığını öğrenme, Arduino projeleri, robot yapma.</p></article>
+          <article><h4>Maker ve Hobiciler</h4><p>Hızlı prototip ve blok + kod hibrit geliştirme.</p></article>
+        </div>
+
+        <div class="impact">
+          <span>5 dakika içinde ilk Arduino programını çalıştırın.</span>
+          <span>Kod bilmeden robot geliştirmeye başlayın.</span>
+          <span>Algoritmik düşünmeyi güçlendirin.</span>
+        </div>
+
+        <ol class="steps">
+          <li><strong>1.</strong> Blokları Sürükle: Arduino komutlarını blok olarak seç.</li>
+          <li><strong>2.</strong> Programı Oluştur: Algoritmanı görsel olarak kur.</li>
+          <li><strong>3.</strong> Arduino’ya Yükle: Tek tıkla kodu karta gönder.</li>
+        </ol>
+
+        <div class="cta-row">
+          <button id="start-ide" type="button">Hemen Başla</button>
+          <button id="open-demo" type="button">Demo Aç</button>
+          <button id="view-training" type="button">Eğitimleri İncele</button>
+        </div>
+
+        <div class="trust-row">
+          <span>Eğitim amaçlı geliştirildi.</span>
+          <span>STEM ve robotik eğitimleri için tasarlandı.</span>
+          <span>Açık kaynak uyumlu.</span>
+        </div>
+
+        <footer class="landing-footer">
+          <h4>Geliştirici</h4>
+          <p>Bu proje açık kaynak olarak yayınlanmaktadır. Geliştirici profili ve kaynak kod:</p>
+          <a href="https://github.com/abdbali/ide" target="_blank" rel="noopener noreferrer">github.com/abdbali/ide</a>
+          <a href="https://github.com/abdbali" target="_blank" rel="noopener noreferrer">github.com/abdbali</a>
+        </footer>
       </div>
-    </div>
+    </section>
 
     <div class="app" id="app">
-      <div class="session-bar glass" id="session-bar">
-        <span id="session-user">Oturum: -</span>
-        <button id="logout-button" type="button">Çıkış Yap</button>
-      </div>
       <aside class="examples-panel glass" id="examples-panel">
         <div class="panel-header-row">
           <h2>Örnek Projeler</h2>
@@ -153,10 +204,6 @@
       </aside>
     </div>
 
-    <script>
-      // İsteğe bağlı: local geliştirmede bu nesneyi doldurabilirsiniz.
-      window.ARDUINO_AUTH = window.ARDUINO_AUTH || null;
-    </script>
     <script type="module" src="app.js"></script>
   </body>
 </html>
