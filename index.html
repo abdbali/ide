@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' data:; base-uri 'self'; form-action 'self';" />
+    
+    <title>Flowide &bull; Arduino Görsel Blok IDE ve C++ Geliştirme Ortamı &mdash; Abdurrahman Bali</title>
+    <meta name="title" content="Flowide &bull; Arduino Görsel Blok IDE ve C++ Geliştirme Ortamı &mdash; Abdurrahman Bali" />
+    <meta name="description" content="Abdurrahman Bali tarafından geliştirilen Flowide: Kinetik ızgara ve blok tabanlı görsel akış mimarisi ile profesyonel Arduino C++ kodlama ortamı." />
+    <meta name="keywords" content="Flowide, Abdurrahman Bali, Arduino IDE, blok tabanlı kodlama, görsel akış şeması, Arduino C++, Web Serial API, mikrodenetleyici simülatörü" />
+    <meta name="author" content="Abdurrahman Bali" />
+    <meta name="publisher" content="Abdurrahman Bali" />
+    <link rel="canonical" href="https://abdbali.github.io/ide/" />
+    <link rel="author" href="https://github.com/abdbali" />
+
+    <!-- Open Graph / Facebook / LinkedIn / AI Search Preview -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Flowide Arduino IDE" />
+    <meta property="og:title" content="Flowide &bull; Arduino Görsel Blok IDE &mdash; Abdurrahman Bali" />
+    <meta property="og:description" content="Blok tabanlı görsel mantık akışı ve Web Serial API ile doğrudan tarayıcı üzerinden Arduino kodlama ve simülasyon ortamı." />
+    <meta property="og:url" content="https://abdbali.github.io/ide/" />
+    <meta property="og:image" content="https://abdbali.github.io/ide/preview.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Flowide &bull; Arduino Görsel Blok IDE &mdash; Abdurrahman Bali" />
+    <meta name="twitter:description" content="Kinetik ızgara ve blok tabanlı görsel akış mimarisi ile profesyonel Arduino C++ kodlama ortamı." />
+    <meta name="twitter:image" content="https://abdbali.github.io/ide/preview.png" />
+    <meta name="twitter:creator" content="@abdbali" />
+
+    <!-- JSON-LD Structured Data for AI Knowledge Graphs & Search Engine Citations -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Person",
+          "@id": "https://github.com/abdbali#person",
+          "name": "Abdurrahman Bali",
+          "url": "https://github.com/abdbali",
+          "jobTitle": "Yazılım ve Gömülü Sistemler Geliştiricisi",
+          "sameAs": [
+            "https://github.com/abdbali"
+          ],
+          "knowsAbout": [
+            "Arduino",
+            "C++",
+            "Gömülü Sistemler",
+            "Elektronik Devre Tasarımı",
+            "Görsel Programlama Dilleri",
+            "Web Serial API"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://abdbali.github.io/ide/#website",
+          "name": "Flowide — Arduino Flow IDE",
+          "url": "https://abdbali.github.io/ide/",
+          "author": {
+            "@id": "https://github.com/abdbali#person"
+          }
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://abdbali.github.io/ide/#software",
+          "name": "Flowide",
+          "applicationCategory": "DeveloperApplication",
+          "operatingSystem": "Web Browser",
+          "softwareVersion": "1.0.7",
+          "url": "https://abdbali.github.io/ide/",
+          "author": {
+            "@id": "https://github.com/abdbali#person"
+          },
+          "description": "Blok tabanlı görsel mantık akışı ve Web Serial API ile doğrudan tarayıcı üzerinden Arduino programlama ortamı."
+        }
+      ]
+    }
+    </script>
+    
+    <!-- Google Fonts: Technical Sans & Precise Monospace -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Interactive Kinetic Grid Canvas -->
+    <canvas id="kinetic-canvas" class="kinetic-canvas-bg" aria-hidden="true"></canvas>
+
+    <!-- Top Navigation Bar -->
+    <!-- Top Navigation Bar -->
+    <header class="topbar">
+      <div class="topbar-brand" onclick="window.location.href='index.html'">
+        <span class="brand-title">Flowide</span>
+      </div>
+
+      <nav class="topbar-nav" aria-label="Ana menü">
+        <button id="nav-home" type="button" class="nav-btn active">Ana Sayfa</button>
+        <button id="nav-ide" type="button" class="nav-btn">IDE</button>
+        <button id="nav-docs" type="button" class="nav-btn">Dökümanlar</button>
+        
+        <div class="topbar-divider"></div>
+
+        <a href="https://github.com/abdbali/ide" target="_blank" rel="noopener noreferrer" class="github-btn" title="GitHub Kaynak Kodu">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </nav>
+    </header>
+
+    <!-- Modern Frameless Landing Page (Directly over Kinetic Grid) -->
+    <section class="landing" id="landing">
+      <div class="landing-content">
+        <!-- Hero Section: Centered & Enriched -->
+        <div class="hero-section hero-centered">
+          <h1 class="hero-title">
+            <span id="hero-title-prefix">Arduino'yu</span> <span id="dynamic-word" class="dynamic-word">Tasarlayın.</span>
+          </h1>
+          <p class="hero-sub" id="hero-sub">
+            Görsel mantık bloklarını sürükleyip bırakarak bağlayın, standart C++ kodunu anında derleyin ve doğrudan USB üzerinden mikrodenetleyicinize aktarın.
+          </p>
+          <div class="hero-cta-row">
+            <button id="start-ide" type="button" class="btn-hero-primary">Başlat</button>
+            <button id="scroll-to-docs" type="button" class="btn-hero-secondary">Dökümanlar</button>
+          </div>
+        </div>
+
+        <!-- Ultra-Clean Direct Gemini-Style AI Prompt Section -->
+        <section class="assistant-gemini-section" id="assistant-section">
+          <!-- Dynamic Response Stream (Expands smoothly upon user prompt) -->
+          <div class="gemini-chat-stream" id="chat-messages" style="display: none;"></div>
+
+          <!-- Sleek Pill Prompt Bar (Direct input like Google Gemini) -->
+          <form class="gemini-prompt-bar" id="chat-form">
+            <div class="prompt-prefix-icon" title="Arduino Asistanı">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+            <input type="text" id="chat-input" placeholder="Arduino devresi veya kodu isteyin... (Örn: 'Karaşimşek kodu yaz')" autocomplete="off" />
+            <button type="submit" id="chat-send-btn" class="gemini-send-btn" title="Gönder">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </form>
+
+          <div class="gemini-suggestions" id="chat-suggestions">
+            <button type="button" class="suggestion-chip" data-prompt="Karaşimşek devresi ve kodu yaz">Karaşimşek Kodu</button>
+            <button type="button" class="suggestion-chip" data-prompt="Mesafe sensörlü park sensörü kodu yap">Park Sensörü</button>
+            <button type="button" class="suggestion-chip" data-prompt="LDR ile karanlıkta yanan far kodu yaz">LDR Gece Lambası</button>
+            <button type="button" class="suggestion-chip" data-prompt="Potansiyometre ile servo motor kontrolü kodu">Servo Kontrolü</button>
+            <button type="button" class="suggestion-chip" data-prompt="Toprak nem sensörlü otomatik sulama kodu">Toprak Nem Sulama</button>
+          </div>
+        </section>
+
+        <!-- Section: Core Engineering Capabilities -->
+        <div class="landing-section">
+          <div class="section-label">Mühendislik Altyapısı</div>
+          <h2 class="section-heading">Geliştirme Araçları</h2>
+          <div class="capabilities-grid">
+            <div class="cap-item">
+              <h4>Topolojik Graf AST Derleyicisi</h4>
+              <p>Bağlantı kablolarını analiz ederek iç içe if-else ve for döngüsü bloklarını doğru kapsam hiyerarşisiyle üretir.</p>
+            </div>
+            <div class="cap-item">
+              <h4>Web Serial API Entegrasyonu</h4>
+              <p>Ek bir sürücüye ihtiyaç duymadan Chrome ve Edge üzerinden doğrudan USB seri port haberleşmesi sağlar.</p>
+            </div>
+            <div class="cap-item">
+              <h4>Sanal Akış Simülatörü</h4>
+              <p>Fiziksel karta bağlanmadan önce değişken değerlerini ve pin çıkışlarını akış çalışma alanında adım adım test edin.</p>
+            </div>
+            <div class="cap-item">
+              <h4>Çift Yönlü JSON Proje Yönetimi</h4>
+              <p>Projelerinizi .flow.json olarak kaydedin, arkadaşlarınızla paylaşın veya yerel depolama ile kaldığınız yerden devam edin.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Integrated Documentation & Technical Library Section -->
+        <section class="landing-section docs-landing-section" id="docs-section">
+          <div class="section-label">Mühendislik &amp; Kütüphane</div>
+          <h2 class="section-heading">Dökümanlar ve Projeler</h2>
+          <p class="section-subtext">
+            Mikrodenetleyici programlama mimarisi, donanım hesaplamaları ve tek tıkla çalışma alanında derleyebileceğiniz 40+ hazır Arduino projesi.
+          </p>
+
+          <!-- Documentation Category Tabs -->
+          <div class="docs-tab-nav" role="tablist">
+            <button type="button" class="docs-tab-btn active" data-tab="tab-principles">Temel Prensipler</button>
+            <button type="button" class="docs-tab-btn" data-tab="tab-cpp">C++ Mimarisi</button>
+            <button type="button" class="docs-tab-btn" data-tab="tab-hardware">Sensör &amp; Modüller</button>
+            <button type="button" class="docs-tab-btn" data-tab="tab-projects">40+ Proje Kütüphanesi</button>
+            <button type="button" class="docs-tab-btn" data-tab="tab-citation">Atıf &amp; Kaynakça</button>
+          </div>
+
+          <!-- Documentation Content Panes -->
+          <div class="docs-content-container">
+            <!-- Pane 1: Temel Prensipler -->
+            <div class="docs-pane active" id="tab-principles">
+              <div class="docs-grid">
+                <article class="doc-card">
+                  <h3>Ohm Kanunu ve LED Direnç Hesabı</h3>
+                  <p>Mikrodenetleyici pinlerinden aşırı akım çekilmesini engellemek için akım sınırlayıcı direnç formülü kullanılır: <code>R = (V_kaynak - V_led) / I_led</code>.</p>
+                  <div class="doc-formula">R = (5V - 2V) / 0.02A = 150 &Omega; (Standart: 220 &Omega;)</div>
+                  <ul>
+                    <li>Kırmızı / Sarı LED: 1.8V - 2.0V gerilim düşümü</li>
+                    <li>Mavi / Beyaz / Yeşil LED: 3.0V - 3.2V gerilim düşümü</li>
+                  </ul>
+                </article>
+
+                <article class="doc-card">
+                  <h3>Pull-Up ve Pull-Down Dirençleri</h3>
+                  <p>Buton ve anahtarlar boşta kaldığında pinin parazit kapmasını (floating input) önlemek için 10k&Omega; direnç ile HIGH veya LOW seviyesine çekilir.</p>
+                  <ul>
+                    <li><strong>Pull-Down:</strong> Buton basılmadığında pin 0V (LOW), basıldığında 5V (HIGH) okur.</li>
+                    <li><strong>Dahili Pull-Up:</strong> <code>pinMode(pin, INPUT_PULLUP)</code> ile harici dirence gerek kalmadan 5V'a çekilir; basılınca LOW okur.</li>
+                  </ul>
+                </article>
+
+                <article class="doc-card">
+                  <h3>Analog-Dijital Dönüştürücü (ADC) ve map()</h3>
+                  <p>Arduino Uno ADC birimi, 0V - 5V aralığındaki analog voltajı 10-bit çözünürlükle (0 - 1023) tam sayıya dönüştürür.</p>
+                  <div class="doc-formula">Voltaj = (Okunan_Deger &times; 5.0) / 1023.0</div>
+                  <p><code>map(val, 0, 1023, 0, 255)</code> fonksiyonu ADC değerini PWM çıkış ölçeğine normalize eder.</p>
+                </article>
+
+                <article class="doc-card">
+                  <h3>Darbe Genişlik Modülasyonu (PWM)</h3>
+                  <p>Sabit frekansta sinyalin doluluk oranını (Duty Cycle) değiştirerek sahte analog çıkış üretir. Uno üzerinde 3, 5, 6, 9, 10, 11 numaralı pinler PWM destekler.</p>
+                  <ul>
+                    <li><code>analogWrite(pin, 0)</code>: %0 Doluluk (0V)</li>
+                    <li><code>analogWrite(pin, 127)</code>: %50 Doluluk (2.5V ortalama)</li>
+                    <li><code>analogWrite(pin, 255)</code>: %100 Doluluk (5V)</li>
+                  </ul>
+                </article>
+              </div>
+            </div>
+
+            <!-- Pane 2: C++ Mimarisi -->
+            <div class="docs-pane" id="tab-cpp">
+              <div class="docs-grid">
+                <article class="doc-card">
+                  <h3>Program İskeleti: setup() ve loop()</h3>
+                  <p>Arduino C++ çekirdeği iki ana fonksiyondan oluşur:</p>
+                  <ul>
+                    <li><code>void setup()</code>: Kart açıldığında veya resetlendiğinde yalnızca 1 kez çalışır; pin modları ve seri port başlatılır.</li>
+                    <li><code>void loop()</code>: setup bittikten sonra güç kesilene kadar sonsuz döngüde tekrarlanır.</li>
+                  </ul>
+                </article>
+
+                <article class="doc-card">
+                  <h3>Veri Tipleri ve Bellek Yönetimi</h3>
+                  <p>Gömülü sistemlerde SRAM kısıtlıdır (ATmega328P: 2KB SRAM). Doğru veri tipi seçimi kararlılık sağlar:</p>
+                  <ul>
+                    <li><code>bool</code> (1 bayt): true / false</li>
+                    <li><code>byte</code> / <code>uint8_t</code> (1 bayt): 0 .. 255</li>
+                    <li><code>int</code> (2 bayt): -32,768 .. +32,767</li>
+                    <li><code>unsigned long</code> (4 bayt): 0 .. 4,294,967,295 (millis zamanlamaları için şart)</li>
+                  </ul>
+                </article>
+
+                <article class="doc-card">
+                  <h3>millis() ile Bloklamasız Zamanlama</h3>
+                  <p><code>delay()</code> işlemciyi dondurur. <code>millis()</code> ise donanım sayacını okuyarak eş zamanlı çoklu görev yürütülmesini sağlar.</p>
+                </article>
+
+                <article class="doc-card">
+                  <h3>Topolojik Graf AST Yürütme Mimarisi</h3>
+                  <p>Flowide blokları, kablo bağlantı grafından topolojik AST (Soyut Sözdizim Ağacı) inşa eder. İç içe döngüler ve if-else kapsamları standart C++ kod blokları olarak üretilir.</p>
+                </article>
+              </div>
+            </div>
+
+            <!-- Pane 3: Sensör & Modüller -->
+            <div class="docs-pane" id="tab-hardware">
+              <div class="docs-grid">
+                <article class="doc-card">
+                  <h3>HC-SR04 Ultrasonik Mesafe Sensörü</h3>
+                  <p>40kHz ses dalgası gönderip yankı dönüş süresini ölçer. <code>Mesafe (cm) = (Sure &times; 0.0343) / 2</code> formülüyle hesaplanır.</p>
+                  <div class="doc-schematic">VCC &rarr; 5V | GND &rarr; GND | Trig &rarr; Pin 9 | Echo &rarr; Pin 10</div>
+                </article>
+
+                <article class="doc-card">
+                  <h3>DHT11 Sıcaklık ve Nem Sensörü</h3>
+                  <p>Tek hatlı dijital protokol üzerinden bağıl nem (%20-%80) ve sıcaklık (0-50°C) verilerini 1Hz hızında iletir.</p>
+                  <div class="doc-schematic">VCC &rarr; 5V | GND &rarr; GND | DATA &rarr; Pin 2 (4.7k Pull-up dirençli)</div>
+                </article>
+
+                <article class="doc-card">
+                  <h3>SG90 Mikro Servo Motor</h3>
+                  <p>50Hz PWM sinyali ile 0° - 180° açı kontrolü sağlar. Dahili potansiyometre ve dişli kutusuyla konumu kilitler.</p>
+                  <div class="doc-schematic">Kırmızı &rarr; 5V | Kahverengi &rarr; GND | Turuncu &rarr; Pin 9 (PWM)</div>
+                </article>
+
+                <article class="doc-card">
+                  <h3>SSD1306 0.96" I2C OLED Ekran</h3>
+                  <p>128x64 piksel monokrom ekran. I2C veri yolu (SDA: A4, SCL: A5) üzerinden grafik ve metin gösterir.</p>
+                  <div class="doc-schematic">VCC &rarr; 5V | GND &rarr; GND | SCL &rarr; A5 | SDA &rarr; A4</div>
+                </article>
+              </div>
+            </div>
+
+            <!-- Pane 4: 40+ Proje Kütüphanesi -->
+            <div class="docs-pane" id="tab-projects">
+              <div class="docs-search-bar">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="docs-projects-filter" placeholder="40+ proje arasında filtreleyin... (Örn: 'servo', 'park', 'bluetooth', 'nem')" />
+              </div>
+              <div class="docs-projects-grid" id="docs-projects-grid"></div>
+            </div>
+
+            <!-- Pane 5: Atıf & Kaynakça -->
+            <div class="docs-pane" id="tab-citation">
+              <div class="citation-box">
+                <h3>Akademik Atıf &amp; Kaynakça Rehberi</h3>
+                <p>Flowide yazılımını, kinetik grafik AST mimarisini ve eğitim materyallerini araştırmalarınızda veya projelerinizde kaynak göstermek için aşağıdaki formatları kullanabilirsiniz:</p>
+                <div class="citation-block">
+                  <div class="citation-label">BibTeX:</div>
+                  <pre><code>@software{bali2026flowide,
+  author       = {Bali, Abdurrahman},
+  title        = {Flowide: Web Serial Destekli Görsel Arduino IDE ve AST Derleyicisi},
+  year         = {2026},
+  url          = {https://github.com/abdbali/ide},
+  version      = {1.0.7}
+}</code></pre>
+                </div>
+                <div class="citation-block">
+                  <div class="citation-label">APA 7th Edition:</div>
+                  <p class="apa-text">Bali, A. (2026). <em>Flowide: Web Serial Destekli Görsel Arduino IDE ve AST Derleyicisi</em> (Sürüm 1.0.7) [Bilgisayar Yazılımı]. GitHub. https://github.com/abdbali/ide</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- High-Contrast Clean Landing Footer -->
+        <footer class="landing-page-footer">
+          <div class="footer-inner">
+            <div class="footer-brand-col">
+              <div class="footer-brand-header">
+                <span class="footer-brand-title">Flowide</span>
+                <span class="version-badge">v1.0.7</span>
+              </div>
+              <p class="footer-copy-text">Açık kaynaklı, modern ve blok tabanlı mikrodenetleyici görsel IDE platformu.</p>
+            </div>
+            <div class="footer-nav-col">
+              <span class="footer-col-title">Platform</span>
+              <button type="button" class="footer-text-btn" onclick="enterIde()">IDE</button>
+              <button type="button" class="footer-text-btn" id="footer-link-docs">Dökümanlar</button>
+              <a href="https://github.com/abdbali/ide" target="_blank" rel="noopener noreferrer">GitHub Kaynak Kodu</a>
+              <a href="https://arduino.cc" target="_blank" rel="noopener noreferrer">Arduino Belgeleri</a>
+            </div>
+            <div class="footer-nav-col">
+              <span class="footer-col-title">Bilgi &amp; İletişim</span>
+              <a href="https://github.com/abdbali" target="_blank" rel="noopener noreferrer">Geliştirici: @abdbali</a>
+              <span class="footer-version-tag">Sürüm 1.0.7 (Stable)</span>
+            </div>
+          </div>
+          <div class="footer-bottom-bar">
+            <span>&copy; 2026 Flowide IDE. Açık kaynak kodlu ve ücretsizdir.</span>
+            <span>Kinetik Izgara &amp; AST Graf Derleyicisi ile çalışır.</span>
+          </div>
+        </footer>
+      </div>
+    </section>
+
+    <!-- Main Workspace / IDE View -->
+    <div class="app" id="app">
+      <!-- Sidebar: Toolbox / Block Palette -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-title-row">
+            <h2>Blok Sandığı</h2>
+            <span class="block-count-badge" id="toolbox-count">18 Blok</span>
+          </div>
+          <p class="sidebar-sub">Sürükleyip çalışma alanına bırakın</p>
+        </div>
+        
+        <div class="search-box">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" placeholder="Blok ara..." id="block-search" />
+        </div>
+
+        <div class="block-groups" id="block-palette">
+          <details class="block-group" open>
+            <summary>Temel Akış</summary>
+            <div class="block-item" draggable="true" data-type="start">
+              <span class="block-tag">Setup</span>
+              <span class="block-title-text">Program Başlangıcı</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="print">
+              <span class="block-tag">Serial</span>
+              <span class="block-title-text">Print (Serial)</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="delay">
+              <span class="block-tag">Delay</span>
+              <span class="block-title-text">Delay (Bekleme ms)</span>
+            </div>
+          </details>
+
+          <details class="block-group" open>
+            <summary>Koşul & Döngüler</summary>
+            <div class="block-item" draggable="true" data-type="if">
+              <span class="block-tag">Logic</span>
+              <span class="block-title-text">If / Else</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="repeat">
+              <span class="block-tag">Loop</span>
+              <span class="block-title-text">Repeat (Tekrarla)</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="for">
+              <span class="block-tag">Loop</span>
+              <span class="block-title-text">For Loop</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="while">
+              <span class="block-tag">Loop</span>
+              <span class="block-title-text">While Loop</span>
+            </div>
+          </details>
+
+          <details class="block-group" open>
+            <summary>GPIO & Analog</summary>
+            <div class="block-item" draggable="true" data-type="pin-write">
+              <span class="block-tag">GPIO</span>
+              <span class="block-title-text">Pin Write</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="pin-read">
+              <span class="block-tag">GPIO</span>
+              <span class="block-title-text">Pin Read</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="analog-read">
+              <span class="block-tag">Analog</span>
+              <span class="block-title-text">Analog Read</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="pwm">
+              <span class="block-tag">PWM</span>
+              <span class="block-title-text">PWM Output</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="buzzer">
+              <span class="block-tag">Audio</span>
+              <span class="block-title-text">Buzzer Tone</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="map">
+              <span class="block-tag">Math</span>
+              <span class="block-title-text">Map Transform</span>
+            </div>
+          </details>
+
+          <details class="block-group" open>
+            <summary>Sensörler</summary>
+            <div class="block-item" draggable="true" data-type="ultrasonic">
+              <span class="block-tag">Sensor</span>
+              <span class="block-title-text">Ultrasonic Sensor</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="dht">
+              <span class="block-tag">Sensor</span>
+              <span class="block-title-text">DHT11 Sensor</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="rfid">
+              <span class="block-tag">Sensor</span>
+              <span class="block-title-text">RFID Sensor</span>
+            </div>
+          </details>
+
+          <details class="block-group" open>
+            <summary>Donanım & İletişim</summary>
+            <div class="block-item" draggable="true" data-type="servo">
+              <span class="block-tag">Servo</span>
+              <span class="block-title-text">Servo Motor</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="oled">
+              <span class="block-tag">Display</span>
+              <span class="block-title-text">1.3in OLED</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="motor">
+              <span class="block-tag">Motor</span>
+              <span class="block-title-text">L298N Motor Driver</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="wifi">
+              <span class="block-tag">WiFi</span>
+              <span class="block-title-text">WiFi Connect</span>
+            </div>
+          </details>
+        </div>
+      </aside>
+
+      <div class="resizer" data-resize="sidebar" title="Boyutlandır"></div>
+
+      <!-- Center: Workspace Stage -->
+      <main class="workspace">
+        <header class="workspace-header">
+          <div class="canvas-toolbar">
+            <button id="btn-undo" class="tool-btn" title="Geri Al (Ctrl+Z)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>
+              <span>Geri Al</span>
+            </button>
+            <button id="btn-redo" class="tool-btn" title="İleri Al (Ctrl+Y)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"/></svg>
+              <span>İleri</span>
+            </button>
+            
+            <div class="tool-sep"></div>
+
+            <button id="auto-layout" class="tool-btn" title="Akışı Düzenle">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              <span>Akışı Düzenle</span>
+            </button>
+
+            <button id="clear-canvas" class="tool-btn btn-danger-soft" title="Temizle">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
+              <span>Temizle</span>
+            </button>
+
+            <div class="tool-sep"></div>
+
+            <button id="btn-save-project" class="tool-btn" title="Projeyi .flow.json Olarak Kaydet">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              <span>Kaydet</span>
+            </button>
+            
+            <label class="tool-btn btn-file-label" title="Projeyi Yükle">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path><polyline points="7 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <span>Yükle</span>
+              <input type="file" id="load-project-input" accept=".json,.flow.json" style="display: none;" />
+            </label>
+
+            <div class="tool-sep"></div>
+
+            <div class="sim-controls">
+              <button id="btn-toggle-sim" class="tool-btn btn-sim-play" title="Sanal Akış Simülatörünü Başlat">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <span id="sim-btn-text">Simüle Et</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="canvas-metrics">
+            <div class="zoom-controls">
+              <button id="btn-zoom-out" class="zoom-btn" title="Uzaklaş">-</button>
+              <span id="zoom-level">100%</span>
+              <button id="btn-zoom-in" class="zoom-btn" title="Yakınlaş">+</button>
+              <button id="btn-zoom-reset" class="zoom-btn-icon" title="Sıfırla">1:1</button>
+              <button id="btn-zoom-fit" class="zoom-btn-icon" title="Sığdır">Fit</button>
+            </div>
+            <div class="status-indicator">
+              <span class="status-dot"></span>
+              <span>Bloklar: <strong id="block-count">0</strong></span>
+            </div>
+          </div>
+        </header>
+
+        <section class="canvas-viewport" id="canvas-viewport">
+          <div class="canvas-stage" id="canvas-stage">
+            <svg class="connections-layer" id="connections" aria-hidden="true"></svg>
+            <div class="blocks-layer" id="blocks-layer"></div>
+          </div>
+
+          <div class="ide-bottom-bar" id="ide-bottom-bar">
+            <!-- Dynamic In-IDE Assistant Card -->
+            <div class="ide-chat-response" id="ide-chat-response" style="display: none;">
+              <div class="ide-chat-header">
+                <div class="ide-chat-header-title">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                  <span id="ide-chat-title">Arduino Asistanı</span>
+                </div>
+                <button type="button" class="ide-chat-close" id="ide-chat-close" title="Kapat">&times;</button>
+              </div>
+              <div class="ide-chat-body" id="ide-chat-body"></div>
+            </div>
+
+            <!-- In-IDE Prompt Capsule -->
+            <div class="ide-prompt-capsule">
+              <div class="ide-prompt-icon" title="Arduino Asistanı">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </div>
+              <input type="text" id="ide-chat-input" class="ide-chat-input" placeholder="Arduino devresi veya kodu isteyin... (Örn: 'Karaşimşek')" autocomplete="off" />
+              <button type="button" id="ide-chat-send-btn" class="ide-chat-send-btn" title="Gönder">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="sim-hud" id="sim-hud" style="display: none;">
+            <div class="hud-header">
+              <div class="hud-header-left">
+                <span class="hud-indicator pulse"></span>
+                <strong class="hud-board-title">Arduino Uno R3</strong>
+              </div>
+              <div class="hud-led-status-group">
+                <span class="hud-led-tag">L(13)</span>
+                <span class="hud-led-dot hud-led-13" id="hud-led-13"></span>
+                <span class="hud-led-tag">TX</span>
+                <span class="hud-led-dot hud-led-tx" id="hud-led-tx"></span>
+                <span class="hud-led-tag">RX</span>
+                <span class="hud-led-dot hud-led-rx" id="hud-led-rx"></span>
+              </div>
+            </div>
+
+            <!-- Monochrome / Dark Vector Arduino Uno Board from Image 2 -->
+            <div class="arduino-board-graphic">
+              <svg class="uno-board-svg" viewBox="0 0 260 170" xmlns="http://www.w3.org/2000/svg">
+                <!-- PCB Body -->
+                <path d="M 10,8 L 242,8 A 6,6 0 0 1 248,14 L 248,48 L 256,56 L 256,112 L 248,120 L 248,156 A 6,6 0 0 1 242,162 L 10,162 A 6,6 0 0 1 4,156 L 4,14 A 6,6 0 0 1 10,8 Z" fill="#141418" stroke="#383842" stroke-width="1.8"/>
+                
+                <!-- USB Jack -->
+                <rect x="0" y="20" width="30" height="38" rx="2" fill="#222228" stroke="#555562" stroke-width="1.2"/>
+                <rect x="5" y="26" width="20" height="26" rx="1" fill="#0c0c0e"/>
+                
+                <!-- DC Power Barrel Jack -->
+                <rect x="0" y="106" width="36" height="42" rx="2" fill="#16161a" stroke="#444450" stroke-width="1.2"/>
+                <circle cx="16" cy="127" r="6" fill="#09090b" stroke="#555562" stroke-width="1.2"/>
+
+                <!-- Reset Button -->
+                <rect x="42" y="14" width="14" height="14" rx="2" fill="#222228" stroke="#555562" stroke-width="1"/>
+                <circle cx="49" cy="21" r="4" fill="#dc2626"/>
+
+                <!-- ATmega328P DIP IC Chip -->
+                <rect x="95" y="104" width="112" height="24" rx="2" fill="#09090b" stroke="#3f3f46" stroke-width="1.2"/>
+                <circle cx="99" cy="116" r="2.5" fill="#27272a"/>
+                <text x="151" y="119" fill="#71717a" font-size="7.5" font-family="monospace" text-anchor="middle" letter-spacing="1">ATMEGA328P</text>
+
+                <!-- Arduino Infinity Logo Silk -->
+                <g transform="translate(132, 48)">
+                  <circle cx="10" cy="10" r="8" fill="none" stroke="#52525b" stroke-width="1.2"/>
+                  <circle cx="26" cy="10" r="8" fill="none" stroke="#52525b" stroke-width="1.2"/>
+                  <line x1="6" y1="10" x2="14" y2="10" stroke="#52525b" stroke-width="1.2"/>
+                  <line x1="22" y1="10" x2="30" y2="10" stroke="#52525b" stroke-width="1.2"/>
+                  <line x1="26" y1="6" x2="26" y2="14" stroke="#52525b" stroke-width="1.2"/>
+                  <text x="18" y="26" fill="#a1a1aa" font-size="7" font-family="sans-serif" font-weight="bold" text-anchor="middle">UNO</text>
+                </g>
+
+                <!-- Top Digital Header -->
+                <rect x="80" y="10" width="162" height="14" rx="1.5" fill="#09090b" stroke="#383842" stroke-width="1"/>
+                <text x="110" y="20" fill="#71717a" font-size="6" font-family="monospace">13</text>
+                <text x="122" y="20" fill="#71717a" font-size="6" font-family="monospace">12</text>
+                <text x="134" y="20" fill="#71717a" font-size="6" font-family="monospace">11</text>
+                <text x="146" y="20" fill="#71717a" font-size="6" font-family="monospace">10</text>
+                <text x="158" y="20" fill="#71717a" font-size="6" font-family="monospace">9</text>
+                <text x="170" y="20" fill="#71717a" font-size="6" font-family="monospace">8</text>
+                <text x="188" y="20" fill="#71717a" font-size="6" font-family="monospace">7</text>
+                <text x="198" y="20" fill="#71717a" font-size="6" font-family="monospace">6</text>
+                <text x="208" y="20" fill="#71717a" font-size="6" font-family="monospace">5</text>
+                <text x="218" y="20" fill="#71717a" font-size="6" font-family="monospace">4</text>
+                <text x="228" y="20" fill="#71717a" font-size="6" font-family="monospace">3</text>
+                <text x="238" y="20" fill="#71717a" font-size="6" font-family="monospace">2</text>
+
+                <!-- Built-in LED 'L' (Pin 13) -->
+                <circle id="board-svg-led-13" cx="88" cy="42" r="3.5" fill="#27272a" stroke="#52525b" stroke-width="1"/>
+                <text x="88" y="52" fill="#a1a1aa" font-size="6" font-family="monospace" text-anchor="middle">L</text>
+
+                <!-- Built-in LEDs 'TX' & 'RX' -->
+                <circle id="board-svg-led-tx" cx="100" cy="42" r="3" fill="#27272a" stroke="#52525b" stroke-width="1"/>
+                <text x="100" y="52" fill="#71717a" font-size="5.5" font-family="monospace" text-anchor="middle">TX</text>
+                <circle id="board-svg-led-rx" cx="110" cy="42" r="3" fill="#27272a" stroke="#52525b" stroke-width="1"/>
+                <text x="110" y="52" fill="#71717a" font-size="5.5" font-family="monospace" text-anchor="middle">RX</text>
+
+                <!-- 'ON' Power LED -->
+                <circle id="board-svg-led-on" cx="72" cy="112" r="3" fill="#22c55e" stroke="#16a34a" stroke-width="1"/>
+                <text x="72" y="122" fill="#22c55e" font-size="5.5" font-family="monospace" text-anchor="middle">ON</text>
+
+                <!-- Bottom Power & Analog Headers -->
+                <rect x="80" y="142" width="75" height="14" rx="1.5" fill="#09090b" stroke="#383842" stroke-width="1"/>
+                <text x="117" y="152" fill="#71717a" font-size="6" font-family="monospace" text-anchor="middle">POWER</text>
+                <rect x="165" y="142" width="77" height="14" rx="1.5" fill="#09090b" stroke="#383842" stroke-width="1"/>
+                <text x="203" y="152" fill="#71717a" font-size="6" font-family="monospace" text-anchor="middle">ANALOG IN</text>
+              </svg>
+            </div>
+
+            <div class="hud-pins" id="hud-pins"></div>
+          </div>
+        </section>
+      </main>
+
+      <div class="resizer" data-resize="panel" title="Boyutlandır"></div>
+
+      <!-- Right Panel: Sleek User-Friendly Tabs (C++ Code & Serial Monitor) -->
+      <aside class="panel" id="panel">
+        <header class="panel-header">
+          <div class="panel-tab-bar">
+            <button id="tab-code" class="panel-tab-btn active" type="button">C++ Kodu</button>
+            <button id="tab-serial" class="panel-tab-btn" type="button">Seri Monitör</button>
+          </div>
+
+          <div class="panel-actions" id="code-actions">
+            <button id="btn-sync-code" class="action-btn" title="Kodu Akış Şemasına Dönüştür">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+              <span>Bloklara Aktar</span>
+            </button>
+            <button id="copy-code" class="action-btn" title="Kodu Kopyala">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>
+              <span>Kopyala</span>
+            </button>
+            <button id="download-ino" class="action-btn btn-accent" title=".ino Dosyası İndir">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>.ino İndir</span>
+            </button>
+          </div>
+
+          <div class="panel-actions" id="serial-actions" style="display: none;">
+            <button id="btn-web-serial" class="serial-connect-btn" title="Web Serial USB Bağlantısı">
+              <span id="serial-btn-text">USB Bağlan</span>
+            </button>
+            <select id="serial-baud" class="baud-select" title="Baud Rate">
+              <option value="9600" selected>9600</option>
+              <option value="115200">115200</option>
+              <option value="57600">57600</option>
+            </select>
+            <button id="clear-serial" class="serial-clear-btn" title="Temizle">Temizle</button>
+          </div>
+        </header>
+
+        <!-- Tab 1: Code Output & Live Bidirectional Editor -->
+        <div class="tab-pane active" id="pane-code">
+          <div class="code-container full-height-code">
+            <textarea class="code-output" id="code-output" spellcheck="false" placeholder="// Arduino C++ kodunu buraya yazın veya yapıştırın..."></textarea>
+          </div>
+          <div class="panel-statusbar">
+            <span id="ast-status-badge" class="ast-badge">Grafik Hazır &bull; İki Yönlü Canlı Senkron</span>
+            <a href="https://github.com/abdbali/ide" target="_blank" rel="noopener noreferrer" class="status-github-link">GitHub</a>
+          </div>
+        </div>
+
+        <!-- Tab 2: Full-Height Serial Monitor -->
+        <div class="tab-pane" id="pane-serial" style="display: none;">
+          <div class="serial-monitor-container">
+            <div class="serial-console full-height-console" id="serial-body">
+              <div class="console-line system-line">&gt; Arduino USB bağlantısı bekleniyor...</div>
+            </div>
+
+            <div class="serial-input-row">
+              <input type="text" id="serial-send-input" placeholder="Karta komut gönder... (Enter)" autocomplete="off" />
+              <button id="serial-send-btn" type="button">Gönder</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Application Logic -->
+    <script src="app.js"></script>
+  </body>
+</html>
