@@ -15,9 +15,9 @@ namespace FlowideLauncher
     {
         private static HttpListener listener;
         private static int serverPort = 3000;
-        private static NotifyIcon trayIcon;
         private static Thread serverThread;
         private static bool isRunning = true;
+        private static Process appWindowProcess;
 
         private static readonly Dictionary<string, string> MimeTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -39,13 +39,10 @@ namespace FlowideLauncher
         [STAThread]
         static void Main(string[] args)
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-
             // Find an available port
             serverPort = GetAvailablePort(3000);
 
-            // Start HTTP listener
+            // Start in-memory HTTP listener
             listener = new HttpListener();
             listener.Prefixes.Add("http://127.0.0.1:" + serverPort + "/");
             try
@@ -54,7 +51,7 @@ namespace FlowideLauncher
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Yerel sunucu başlatılamadı: " + ex.Message, "Flowide Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Yerel Flowide motoru başlatılamadı: " + ex.Message, "Flowide Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -64,35 +61,75 @@ namespace FlowideLauncher
 
             string appUrl = "http://127.0.0.1:" + serverPort + "/index.html";
 
-            // Open browser
+            // Launch in dedicated modern Desktop App Mode (Window without URL bar or browser tabs)
+            LaunchDesktopAppWindow(appUrl);
+
+            // Clean shutdown when the desktop window is closed
+            if (appWindowProcess != null)
+            {
+                try
+                {
+                    appWindowProcess.WaitForExit();
+                }
+                catch { }
+            }
+
+            isRunning = false;
+            try { listener.Stop(); } catch { }
+        }
+
+        private static void LaunchDesktopAppWindow(string targetUrl)
+        {
+            string[] possibleBrowsers = new string[]
+            {
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft\Edge\Application\msedge.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"Microsoft\Edge\Application\msedge.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"Google\Chrome\Application\chrome.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Google\Chrome\Application\chrome.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Google\Chrome\Application\chrome.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\Edge\Application\msedge.exe")
+            };
+
+            string browserPath = null;
+            foreach (var b in possibleBrowsers)
+            {
+                if (File.Exists(b))
+                {
+                    browserPath = b;
+                    break;
+                }
+            }
+
+            if (browserPath != null)
+            {
+                string profileDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Flowide", "AppProfile");
+                try
+                {
+                    if (!Directory.Exists(profileDir)) Directory.CreateDirectory(profileDir);
+                }
+                catch { }
+
+                ProcessStartInfo psi = new ProcessStartInfo
+                {
+                    FileName = browserPath,
+                    Arguments = string.Format("--app=\"{0}\" --window-size=1360,860 --user-data-dir=\"{1}\" --app-id=flowide-ide --disable-features=TranslateUI --no-first-run", targetUrl, profileDir),
+                    UseShellExecute = false
+                };
+
+                try
+                {
+                    appWindowProcess = Process.Start(psi);
+                    return;
+                }
+                catch { }
+            }
+
+            // Fallback to default browser if no Chromium/Edge engine found
             try
             {
-                Process.Start(appUrl);
+                Process.Start(targetUrl);
             }
             catch { }
-
-            // Create System Tray Icon
-            trayIcon = new NotifyIcon();
-            trayIcon.Text = "Flowide - Görsel Arduino IDE";
-            trayIcon.Icon = SystemIcons.Application;
-            trayIcon.Visible = true;
-
-            ContextMenu menu = new ContextMenu();
-            menu.MenuItems.Add("Flowide'ı Tarayıcıda Aç", (s, e) => { Process.Start(appUrl); });
-            menu.MenuItems.Add("-");
-            menu.MenuItems.Add("Çıkış", (s, e) => {
-                isRunning = false;
-                try { listener.Stop(); } catch { }
-                trayIcon.Visible = false;
-                Application.Exit();
-            });
-            trayIcon.ContextMenu = menu;
-            trayIcon.DoubleClick += (s, e) => { Process.Start(appUrl); };
-
-            // Show balloon tip
-            trayIcon.ShowBalloonTip(3000, "Flowide Başlatıldı", "Uygulama arka planda çalışıyor. Tarayıcınızdan erişebilirsiniz.", ToolTipIcon.Info);
-
-            Application.Run();
         }
 
         private static int GetAvailablePort(int startingPort)
@@ -146,7 +183,6 @@ namespace FlowideLauncher
                     path = "index.html";
                 }
 
-                // Try to load embedded resource or local file
                 byte[] content = null;
                 string ext = Path.GetExtension(path).ToLower();
 

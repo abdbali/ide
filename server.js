@@ -134,21 +134,31 @@ function handleRequest(req, res) {
 
 function openBrowser(targetUrl) {
   const platform = process.platform;
-  let cmd = "";
 
   if (platform === "win32") {
-    cmd = `start "" "${targetUrl}"`;
-  } else if (platform === "darwin") {
-    cmd = `open "${targetUrl}"`;
-  } else {
-    cmd = `xdg-open "${targetUrl}"`;
-  }
+    const edgePath86 = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+    const edgePath64 = "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe";
+    const chromePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+    const profileDir = path.join(process.env.LOCALAPPDATA || "", "Flowide", "AppProfile");
 
-  exec(cmd, (err) => {
-    if (err) {
-      console.log(`[Flowide] Tarayici otomatik acilamadi. Lutfen tarayicinizdan su adrese gidin: ${targetUrl}`);
+    let browserExe = null;
+    if (fs.existsSync(edgePath86)) browserExe = edgePath86;
+    else if (fs.existsSync(edgePath64)) browserExe = edgePath64;
+    else if (fs.existsSync(chromePath)) browserExe = chromePath;
+
+    if (browserExe) {
+      const appCmd = `start "" "${browserExe}" --app="${targetUrl}" --window-size=1360,860 --user-data-dir="${profileDir}" --app-id=flowide-ide`;
+      exec(appCmd, (err) => {
+        if (err) exec(`start "" "${targetUrl}"`);
+      });
+      return;
     }
-  });
+    exec(`start "" "${targetUrl}"`);
+  } else if (platform === "darwin") {
+    exec(`open "${targetUrl}"`);
+  } else {
+    exec(`xdg-open "${targetUrl}"`);
+  }
 }
 
 function startServerOnPort(portListIndex = 0) {
