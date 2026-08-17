@@ -14,7 +14,7 @@
 
 ---
 
-## 📑 İçindekiler
+##  İçindekiler
 
 1. [Genel Bakış](#-genel-bakış)
 2. [Öne Çıkan Yetenekler](#-öne-çıkan-yetenekler)
@@ -29,7 +29,7 @@
 
 ---
 
-## 🌟 Genel Bakış
+##  Genel Bakış
 
 **Flowide**, gömülü sistemler ve Arduino programlamayı basitleştiren, tarayıcı tabanlı görsel bir tümleşik geliştirme ortamıdır (IDE). Karmaşık C++ sözdizimi yerine akış tabanlı blok bağlantıları kullanarak:
 
@@ -40,7 +40,7 @@
 
 ---
 
-## 🚀 Öne Çıkan Yetenekler
+##  Öne Çıkan Yetenekler
 
 ```
 +-------------------------------------------------------------------------------+
@@ -69,7 +69,7 @@
 
 ---
 
-## 🏗️ Yazılım & Derleyici Mimarisi
+##  Yazılım & Derleyici Mimarisi
 
 Flowide, blokları basit bir dizi olarak değil; yönlü bir çizge (Directed Acyclic Graph) olarak ele alır:
 
@@ -90,7 +90,7 @@ graph TD
 
 ---
 
-## 🧰 Desteklenen Bloklar ve Modüller
+##  Desteklenen Bloklar ve Modüller
 
 | Kategori | Blok Adı | Açıklama | Üretilen C++ Kodu |
 | :--- | :--- | :--- | :--- |
@@ -107,7 +107,7 @@ graph TD
 
 ---
 
-## 📚 40+ Hazır Proje Kütüphanesi
+##  40+ Hazır Proje Kütüphanesi
 
 Flowide içerisinde tek tıkla bloklara dönüştürülebilen 40'tan fazla hazır mühendislik projesi yer almaktadır:
 
@@ -128,7 +128,7 @@ Flowide içerisinde tek tıkla bloklara dönüştürülebilen 40'tan fazla hazı
 
 ---
 
-## 🔌 Web Serial ile USB Doğrudan Yükleme
+##  Web Serial ile USB Doğrudan Yükleme
 
 Flowide, W3C Web Serial standartlarını destekler. Tarayıcınızdan USB üzerindeki mikrodenetleyiciye doğrudan erişim sağlar:
 
@@ -157,7 +157,7 @@ $$V_{ortalama} = V_{maks} \times \left(\frac{\text{Duty\_Cycle}}{255}\right)$$
 
 ---
 
-## 💻 Kurulum ve Yerel Çalıştırma
+##  Kurulum ve Yerel Çalıştırma
 
 Flowide sıfır bağımlılıkla saf web standartları (HTML5, CSS3, Vanilla ES6+ JavaScript) üzerinde çalışır:
 
@@ -174,7 +174,7 @@ start index.html
 
 ---
 
-## 📖 Akademik Atıf & Kaynakça
+##  Akademik Atıf & Kaynakça
 
 Flowide mimarisini veya dökümantasyonunu akademik yayınlarınızda kaynak göstermek için:
 
@@ -194,7 +194,7 @@ Flowide mimarisini veya dökümantasyonunu akademik yayınlarınızda kaynak gö
 
 ---
 
-## 📄 Lisans
+##  Lisans
 
 Bu proje **MIT Lisansı** ile lisanslanmıştır. Detaylar için [`LICENSE`](LICENSE) dosyasına göz atabilirsiniz.
 
