@@ -3,6 +3,7 @@
 <p align="center">
   <strong>Görsel mantık bloklarını sürükleyip bağlayın, standart C++ kodunu anında derleyin ve Web Serial API ile doğrudan USB üzerinden Arduino'nuza aktarın.</strong>
 </p>
+<img width="1231" height="918" alt="image" src="https://github.com/user-attachments/assets/2fdfd4ef-c365-4df7-a995-9847b8fed759" />
 
 <p align="center">
   <img src="https://img.shields.io/badge/Sürüm-1.0.7_Stable-10b981?style=for-the-badge&logo=arduino&logoColor=white" alt="Version 1.0.7"/>
